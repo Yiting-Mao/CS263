@@ -43,38 +43,41 @@ public class DatastoreServlet extends HttpServlet {
 			resp.getWriter().println(">>>>>>>>Displaying contents in Datastore<br>");
 	  		List<Entity> results=datastore.prepare(display_all).asList(FetchOptions.Builder.withLimit(20));
 			for(Entity temp: results){
-				resp.getWriter().println(temp.getKey().getName()+" : "+(String)temp.getProperty("value") +"<br>");
+				resp.getWriter().println(temp.getKey().getName()+" : "+(String)temp.getProperty("value") +" : "+(Date)temp.getProperty("date")+"<br>");
 				k_names.add((String)temp.getKey().getName());
 			}  	
 			
 			resp.getWriter().println(">>>>>>>>Displaying contents in MemCache<br>");
 			for(String k_name:k_names){
-				if((String) syncCache.get(k_name)!=null){
-					resp.getWriter().println(k_name+" : "+syncCache.get(k_name)+"<br>");
+				if(syncCache.contains(k_name)){
+					Entity taskdata=(Entity)syncCache.get(k_name);
+					resp.getWriter().println(k_name+" : "+(String)taskdata.getProperty("value")+" : "+(Date)taskdata.getProperty("date")+"<br>");
 				}
 			}
 				
 	  	
 	  	}
 	  	else if(value==null){
-  		    //resp.getWriter().println("b : "+(String)syncCache.get("b")+ "+++++++++<br>"); //when rerun, keyname=a,c,d, output 																							null, keyname=b, output right.
+  		    //resp.getWriter().println("b : "+((Entity)syncCache.get("b")).getProperty("value")+ "+++++++++<br>"); //when rerun, keyname=a,c,d, output 																							null, keyname=b, output right.
 	  		Key entKey=KeyFactory.createKey("TaskData",keyname);
 	  		Entity r_Data;
-	  		try{
-				String r_value = (String)syncCache.get(keyname); // Read from cache.
-				if (r_value == null){
+			if(syncCache.contains(keyname)){
+				r_Data=(Entity)syncCache.get(keyname);
+				String r_value=(String)r_Data.getProperty("value");
+				resp.getWriter().println(keyname+ " : "+r_value+ "(Both)"+" : "+(Date)r_Data.getProperty("date"));				
+			}
+			else{
+		  		try{
 		  			r_Data=datastore.get(entKey);  //Read form Datastore
-		  			r_value=(String)r_Data.getProperty("value");
+		  			String r_value=(String)r_Data.getProperty("value");
 		  			//Date r_Date=(Date)r_Data.getProperty("date");
-		  			resp.getWriter().println(keyname+ " : "+r_value+ "(Datastore)");
-					syncCache.put(keyname,r_value); //Add to cache
-				}
-				else resp.getWriter().println(keyname+ " : "+r_value+ "(Both)");
-	  			
-	  		}
-	  		catch(EntityNotFoundException e){
-	  			resp.getWriter().println(keyname+"(Neither)");
-	  		}
+		  			resp.getWriter().println(keyname+ " : "+r_value+ "(Datastore)"+" : "+(Date)r_Data.getProperty("date"));
+					syncCache.put(keyname,r_Data); //Add to cache 			
+		  		}
+		  		catch(EntityNotFoundException e){
+		  			resp.getWriter().println(keyname+"(Neither)");
+		  		}
+			}		
 	  	}
 	  	else{
 	  		Entity inputData=new Entity("TaskData",keyname);
@@ -83,7 +86,7 @@ public class DatastoreServlet extends HttpServlet {
 	  		inputData.setProperty("date", createDate);
 	  		datastore.put(inputData);
 			resp.getWriter().println("Stored "+keyname+" and "+value+" in Datastore<br>");
-			syncCache.put(keyname,value);
+			syncCache.put(keyname,inputData);
 			resp.getWriter().println("Stored "+keyname+" and "+value+" in Memcache<br>");
 	  	}
 	  }
