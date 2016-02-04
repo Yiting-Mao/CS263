@@ -71,7 +71,7 @@ public class BookResource{
 		try{
 			inputData=datastore.get(bookKey);
 			inputData.setProperty("offerNum",(int)inputData.getProperty("offerNum")+offerNum);
-			inputData.serProperty("demandNum",(int)inputData.getProperty("demandNum")+demandNum);
+			inputData.setProperty("demandNum",(int)inputData.getProperty("demandNum")+demandNum);
 			res=Response.noContent().build();
 		}
 		catch(EntityNotFoundException e){
@@ -88,10 +88,32 @@ public class BookResource{
 	}
 	
 	@DELETE
-	public void deleteBook(){
+	public void deleteBook(int offerNum, int demandNum){
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 	    MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
 		Key bookKey=KeyFactory.createKey("Book",this.isbn);
+		Entity target;
+		try{
+			target=datastore.get(bookKey);
+		}
+		catch(EntityNotFoundException e){
+			throw new RuntimeException("Delete: Book with isbn" + this.isbn+" not found");
+		}
+		int offer=(int)target.getProperty("offerNum")-offerNum;
+		int demand=(int)target.getProperty("demandNum")-demandNum;
+		if(offer<=0&&demand<=0){
+			datastore.delete(bookKey);
+			if(syncCache.contains(bookKey)){
+				syncCache.delete(bookKey);
+			}
+		}
+		else{
+			target.setProperty("offerNum",offer);
+			target.setProperty("demandNum",demand);
+			datastore.put(target);
+			syncCache.put(this.isbn, target);
+		}
+		
 	}
 }
 

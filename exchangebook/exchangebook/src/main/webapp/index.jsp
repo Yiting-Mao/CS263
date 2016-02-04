@@ -5,6 +5,7 @@
 <%@ page import="java.util.List" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
+<!DOCTYPE html>
 <html>
 <head>
     <link type="text/css" rel="stylesheet" href="/stylesheets/index.css"/>
@@ -30,12 +31,23 @@
     }
 %>
 	
-<p>Give Out a Book!</p>
+<p>Search a Book</p>
+<form action="/search" method="get">
+	title<input type="text" name="title"></br>
+	author<input type="text" name="author"></br>
+	isbn<input type="text" name="isbn"></br>
+	<input type="submit" value="begin search">
+</form>
+
+<p>Add a Book</p>
 <form action="/rest/ds" method="post">
-	<input type="text" name="title">
-	<input type="text" name="author">
-		<input type="text" name="isbn">
-	<input type="submit">
+	title<input type="text" name="title"></br>
+	author<input type="text" name="author"></br>
+	isbn<input type="text" name="isbn"></br>
+	<input type="radio" name="action" value="offer">offer</br>
+	<input type="radio" name="action" value="demand">demand</br>
+	quantity<input type="number" name="quantity" min="1" max="10"></br>
+	<input type="submit" value="Add">
 </form>
 </body>
 </html>
