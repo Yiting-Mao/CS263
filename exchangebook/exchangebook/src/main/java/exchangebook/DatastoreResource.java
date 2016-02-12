@@ -1,5 +1,6 @@
 package exchangebook;
 import exchangebook.Book;
+import exchangebook.BookOwner;
 
 import java.io.*;
 import java.util.*;
@@ -45,13 +46,14 @@ public class DatastoreResource {
   public void newBook(@FormParam("isbn") String isbn,
 	  	@FormParam("author") String author,
   		@FormParam("title") String title,
-		@FormParam("action") String action,
+		@FormParam("option") String option,
 		@FormParam("quantity") int quantity, 
+		@FormParam("user") String userID,
 		@Context HttpServletResponse servletResponse)throws IOException{
 	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
 	int offerNum,demandNum;
-	if(action.equals("offer")){
+	if(option.equals("offer")){
 		offerNum=quantity; demandNum=0;
 	}
 	else{
@@ -74,6 +76,33 @@ public class DatastoreResource {
 	datastore.put(inputData);
 	syncCache.put(isbn, inputData);
 	
+	boolean flag=false;
+	ArrayList<String> bookOffer=new ArrayList<String>();
+	ArrayList<String> bookDemand=new ArrayList<String>();
+	Entity userData;
+	Key userKey=KeyFactory.createKey("BookOwner",userID);
+	try{
+		userData=datastore.get(userKey);
+		flag=true;
+	}
+	catch(EntityNotFoundException e){
+		userData=new Entity("BookOwner",userID);
+		flag=false;
+	}
+	if(option.equals("offer")){
+		if(flag&&userData.hasProperty("bookOffer"))bookOffer=(ArrayList<String>)userData.getProperty("bookOffer");
+		for(int i=0;i<quantity;i++)
+			bookOffer.add(isbn);
+		userData.setProperty("bookOffer",bookOffer);		
+	}
+	else{
+		if(flag&&userData.hasProperty("bookDemand"))bookDemand=(ArrayList<String>)userData.getProperty("bookDemand");
+		for(int i=0;i<quantity;i++)
+			bookDemand.add(isbn);
+		userData.setProperty("bookDemand",bookDemand);
+	}
+	datastore.put(userData);
+	syncCache.put(userID, userData);
   }
 
   
@@ -93,8 +122,8 @@ public class DatastoreResource {
 		  String isbn=temp.getKey().getName();
 		  String author=(String)temp.getProperty("author");
 		  String title=(String)temp.getProperty("title");
-		  int offerNum=(int)temp.getProperty("offerNum");
-		  int demandNum=(int)temp.getProperty("demandNum");
+		  long offerNum=(long)temp.getProperty("offerNum");
+		  long demandNum=(long)temp.getProperty("demandNum");
 		  Book b=new Book(title,author,isbn,offerNum,demandNum);
 		  list.add(b);
 	  }

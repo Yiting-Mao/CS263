@@ -9,9 +9,12 @@ public class Book{
 	private String title;
 	private String author;
 	private String isbn;
-	private int offerNum;
-	private int demandNum;
-	public Book(String title, String author, String isbn, int offerNum, int demandNum){
+	private long offerNum;
+	private long demandNum;
+	public Book(){
+
+	}
+	public Book(String title, String author, String isbn, long offerNum, long demandNum){
 		this.title=title;
 		this.author=author;
 		this.isbn=isbn;
@@ -37,16 +40,16 @@ public class Book{
 	public String getIsbn(){
 		return this.isbn;
 	}
-	public void setOwnersNum(int num){
+	public void setOwnersNum(long num){
 		this.offerNum=num;
 	}
-	public int getOwnersNum(){
+	public long getOwnersNum(){
 		return this.offerNum;
 	}
-	public void setDemandNum(int num){
+	public void setDemandNum(long num){
 		this.demandNum=num;
 	}
-	public int getDemandNum(){
+	public long getDemandNum(){
 		return this.demandNum;
 	}
 	// public void addOneRecord(){

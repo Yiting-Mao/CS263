@@ -19,7 +19,7 @@ public class SearchServlet extends HttpServlet{
 		String isbn=req.getParameter("isbn");
 		String author=req.getParameter("author");
 		String title=req.getParameter("title");
-		Query result=new Query("Book");
+		Query bookResult=new Query("Book");
 		resp.getWriter().println(">>>>>>>Book Founded with the same isbn<br>");
 		Key bookKey=KeyFactory.createKey("Book",isbn);
 		Entity book;
@@ -41,5 +41,13 @@ public class SearchServlet extends HttpServlet{
 				resp.getWriter().println("Not Found <br>");
 			}
 		}
+		resp.getWriter().println(">>>>>>>>People who offer this book<br>");
+		
+		Query.Filter ownerFilter=new Query.FilterPredicate("bookOffer",Query.FilterOperator.EQUAL,isbn);
+		Query ownerQuery=new Query("BookOwner").setFilter(ownerFilter);
+		List<Entity> ownerList=datastore.prepare(ownerQuery).asList(FetchOptions.Builder.withDefaults());
+		for(Entity temp: ownerList){
+			resp.getWriter().println(temp.getKey().getName()+"<br>");
+		} 
 	}
 }
