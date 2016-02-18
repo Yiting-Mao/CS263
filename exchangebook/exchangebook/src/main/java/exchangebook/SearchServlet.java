@@ -44,7 +44,7 @@ public class SearchServlet extends HttpServlet{
 		resp.getWriter().println(">>>>>>>>People who offer this book<br>");
 		
 		Query.Filter ownerFilter=new Query.FilterPredicate("bookOffer",Query.FilterOperator.EQUAL,isbn);
-		Query ownerQuery=new Query("BookOwner").setFilter(ownerFilter);
+		Query ownerQuery=new Query("Owner").setFilter(ownerFilter);
 		List<Entity> ownerList=datastore.prepare(ownerQuery).asList(FetchOptions.Builder.withDefaults());
 		for(Entity temp: ownerList){
 			resp.getWriter().println(temp.getKey().getName()+"<br>");

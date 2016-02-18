@@ -15,12 +15,33 @@
   <servlet-name>Jersey REST Service</servlet-name>
   <url-pattern>/rest/*</url-pattern>
  </servlet-mapping>
+ 
  <servlet>
    <servlet-name>search servlet</servlet-name>
    <servlet-class>exchangebook.SearchServlet</servlet-class>
-  </servlet>
+ </servlet>
   <servlet-mapping>
    <servlet-name>search servlet</servlet-name>
    <url-pattern>/search</url-pattern>
   </servlet-mapping>
+  
+  <security-constraint>
+     <web-resource-collection>
+         <web-resource-name>my account</web-resource-name>
+         <url-pattern>/account.jsp</url-pattern>
+     </web-resource-collection>
+     <auth-constraint>
+         <role-name>*</role-name>
+     </auth-constraint>
+ </security-constraint>
+	 
+ <servlet>
+     <servlet-name>home</servlet-name>
+     <jsp-file>/index.jsp</jsp-file>
+ </servlet>
+
+ <servlet-mapping>
+     <servlet-name>home</servlet-name>
+     <url-pattern>/index</url-pattern>
+ </servlet-mapping>
 </web-app>

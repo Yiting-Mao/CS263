@@ -2,6 +2,10 @@
 <%@ page import="com.google.appengine.api.users.User" %>
 <%@ page import="com.google.appengine.api.users.UserService" %>
 <%@ page import="com.google.appengine.api.users.UserServiceFactory" %>
+<%@ page import="com.google.appengine.api.datastore.*"%>
+<%@ page import="com.google.appengine.api.taskqueue.Queue"%>
+<%@ page import="com.google.appengine.api.taskqueue.QueueFactory"%>
+<%@ page import="com.google.appengine.api.taskqueue.TaskOptions"%>
 <%@ page import="java.util.List" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
@@ -14,12 +18,39 @@
 <body>
 
 <%
+	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
     User user = userService.getCurrentUser();
+	String name=request.getParameter("name");
+	String location=request.getParameter("location");
 	String userID;
     if (user != null) {
         pageContext.setAttribute("user", user);
 		userID=user.getUserId();
+		int flag=0;
+		Key ownerKey=KeyFactory.createKey("Owner",userID);
+		try{
+			Entity result=datastore.get(ownerKey);
+			flag=1;
+		}
+		catch(EntityNotFoundException e){
+			flag=0;
+		}
+		if(flag==0){
+			if(name==null||location==null){
+		        String redirectURL = "addinfo.html";
+				response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+				response.setHeader("Location", redirectURL);
+			}
+			else{
+				System.out.println("adding values to the queue");
+				System.out.println("userID is"+userID);
+		        Queue queue = QueueFactory.getDefaultQueue();
+		        queue.add(TaskOptions.Builder.withUrl("/rest/ds/addinfo").param("userID", userID).param("name", name).param("location",location));
+			}
+		}
+		
+       
 %>
 <p>Hello, ${fn:escapeXml(user.nickname)}! (You can
     <a href="<%= userService.createLogoutURL(request.getRequestURI()) %>">sign out</a>.)</p>
@@ -59,6 +90,12 @@ function validate_form_add(thisform)
 {
 	with (thisform)
 	{
+		with(user){
+			if(value==""){
+			alert("Please sign in to add books");
+			return false
+			}
+		}
 		if(validate_required(title)==false){
 			alert("Fill in title");
 			title.focus();return false
@@ -79,16 +116,17 @@ function validate_form_add(thisform)
 			alert("Choose the quantity");
 			quantity.focus();return false
 		}
-		with(user){
-			if(value==""){
-			alert("Please sign in to add books");
-			return false
-			}
-		}
+
 	}
 }
 
 </script>
+
+<ul>
+<li><a href="index.jsp">Home</a></li>
+<li><a href="account.jsp">My Account</a></li>
+<li><a href="message.jsp">Messeging</a></li>
+</ul>
 	
 <p>Search a Book</p>
 <form action="/search" onsubmit="return validate_form_search(this)" method="get">
