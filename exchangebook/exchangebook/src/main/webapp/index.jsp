@@ -21,36 +21,21 @@
 	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
     User user = userService.getCurrentUser();
-	String name=request.getParameter("name");
-	String location=request.getParameter("location");
 	String userID;
     if (user != null) {
         pageContext.setAttribute("user", user);
 		userID=user.getUserId();
-		int flag=0;
 		Key ownerKey=KeyFactory.createKey("Owner",userID);
 		try{
 			Entity result=datastore.get(ownerKey);
-			flag=1;
 		}
+		//direct to fill in user info if it's the first time visit
 		catch(EntityNotFoundException e){
-			flag=0;
+	        String redirectURL = "/addinfo.jsp?reqURI=/index.jsp";
+			response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+			response.setHeader("Location", redirectURL);
 		}
-		if(flag==0){
-			if(name==null||location==null){
-		        String redirectURL = "addinfo.html";
-				response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-				response.setHeader("Location", redirectURL);
-			}
-			else{
-				System.out.println("adding values to the queue");
-				System.out.println("userID is"+userID);
-		        Queue queue = QueueFactory.getDefaultQueue();
-		        queue.add(TaskOptions.Builder.withUrl("/rest/ds/addinfo").param("userID", userID).param("name", name).param("location",location));
-			}
-		}
-		
-       
+   
 %>
 <p>Hello, ${fn:escapeXml(user.nickname)}! (You can
     <a href="<%= userService.createLogoutURL(request.getRequestURI()) %>">sign out</a>.)</p>
@@ -123,9 +108,9 @@ function validate_form_add(thisform)
 </script>
 
 <ul>
-<li><a href="index.jsp">Home</a></li>
-<li><a href="account.jsp">My Account</a></li>
-<li><a href="message.jsp">Messeging</a></li>
+<li><a href="/index.jsp">Home</a></li>
+<li><a href="/account.jsp">My Account</a></li>
+<li><a href="/message.jsp">Messeging</a></li>
 </ul>
 	
 <p>Search a Book</p>
@@ -137,7 +122,7 @@ function validate_form_add(thisform)
 </form>
 
 <p>Add a Book</p>
-<form action="/rest/ds" onsubmit="return validate_form_add(this)" method="post">
+<form action="/ds" onsubmit="return validate_form_add(this)" method="post">
 	title<input type="text" name="title"></br>
 	author<input type="text" name="author"></br>
 	isbn<input type="text" name="isbn"></br>

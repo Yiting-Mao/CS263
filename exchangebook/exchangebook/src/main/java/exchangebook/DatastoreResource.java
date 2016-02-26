@@ -15,9 +15,10 @@ import com.google.appengine.api.memcache.*;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
+import com.google.gson.Gson;
 
 //Map this class to /ds route
-@Path("/ds")
+@Path("/")
 public class DatastoreResource {
   // Allows to insert contextual objects into the class,
   // e.g. ServletContext, Request, Response, UriInfo
@@ -55,31 +56,39 @@ public class DatastoreResource {
 		@Context HttpServletResponse servletResponse)throws IOException{
 	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-	int offerNum,demandNum;
-	if(option.equals("offer")){
-		offerNum=quantity; demandNum=0;
-	}
-	else{
-		offerNum=0;demandNum=quantity;
-	}
-	Entity inputData;
+	boolean flag=false;
+	List<String> peopleOffer=new ArrayList<String>();
+	List<String> peopleDemand=new ArrayList<String>();
+	Entity bookData;
 	Key bookKey=KeyFactory.createKey("Book",isbn);
 	try{
-		inputData=datastore.get(bookKey);
-		inputData.setProperty("offerNum",(long)inputData.getProperty("offerNum")+offerNum);
-		inputData.setProperty("demandNum",(long)inputData.getProperty("demandNum")+demandNum);
+		bookData=datastore.get(bookKey);
+		flag=true;
 	}
 	catch(EntityNotFoundException e){
-		inputData=new Entity("Book", isbn);
-		inputData.setProperty("author",author);
-		inputData.setProperty("title",title);
-		inputData.setProperty("offerNum",offerNum);
-		inputData.setProperty("demandNum",demandNum);
+		bookData=new Entity("Book",isbn);
+		flag=false;
 	}
-	datastore.put(inputData);
-	syncCache.put(isbn, inputData);
+	if(option.equals("offer")){
+		if(flag&&bookData.hasProperty("peopleOffer"))peopleOffer=(List<String>)bookData.getProperty("peopleOffer");
+		for(int i=0;i<quantity;i++){
+			peopleOffer.add(userID);
+		}
+		bookData.setProperty("peopleOffer",peopleOffer);
+	}
+	else{
+		if(flag&&bookData.hasProperty("peopleDemand"))peopleDemand=(List<String>)bookData.getProperty("peopleDemand");
+		for(int i=0;i<quantity;i++){
+			peopleDemand.add(userID);
+		}
+		bookData.setProperty("peopleDemand",peopleDemand);
+	}
+	bookData.setProperty("title",title);
+	bookData.setProperty("author",author);
+	datastore.put(bookData);
+	syncCache.put(isbn, bookData);
 	
-	boolean flag=false;
+	flag=false;
 	List<String> bookOffer=new ArrayList<String>();
 	List<String> bookDemand=new ArrayList<String>();
 	Entity userData;
@@ -92,6 +101,7 @@ public class DatastoreResource {
 		userData=new Entity("Owner",userID);
 		flag=false;
 	}
+
 	if(option.equals("offer")){
 		if(flag&&userData.hasProperty("bookOffer"))bookOffer=(List<String>)userData.getProperty("bookOffer");
 		for(int i=0;i<quantity;i++)
@@ -146,6 +156,7 @@ public class DatastoreResource {
 	  return new OwnerResource(uriInfo, request,userID);
   }
   
+  
   private List<Book> getBookList(){
 	  List<Book> list=new ArrayList<Book>();
 	  DatastoreService datastore= DatastoreServiceFactory.getDatastoreService();
@@ -155,9 +166,11 @@ public class DatastoreResource {
 		  String isbn=temp.getKey().getName();
 		  String author=(String)temp.getProperty("author");
 		  String title=(String)temp.getProperty("title");
-		  long offerNum=(long)temp.getProperty("offerNum");
-		  long demandNum=(long)temp.getProperty("demandNum");
-		  Book b=new Book(title,author,isbn,offerNum,demandNum);
+		  List<String> peopleOffer=new ArrayList<String>();
+		  List<String> peopleDemand=new ArrayList<String>();
+		  peopleOffer=(List<String>)temp.getProperty("peopleOffer");
+		  peopleDemand=(List<String>)temp.getProperty("peopleDemand");
+		  Book b=new Book(title,author,isbn,peopleOffer,peopleDemand);
 		  list.add(b);
 	  }
 	  return list;

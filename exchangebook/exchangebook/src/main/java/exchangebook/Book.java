@@ -9,17 +9,17 @@ public class Book{
 	private String title;
 	private String author;
 	private String isbn;
-	private long offerNum;
-	private long demandNum;
+	private List<String> peopleOffer;
+	private List<String> peopleDemand;
 	public Book(){
 
 	}
-	public Book(String title, String author, String isbn, long offerNum, long demandNum){
+	public Book(String title, String author, String isbn, List<String> peopleOffer, List<String> peopleDemand){
 		this.title=title;
 		this.author=author;
 		this.isbn=isbn;
-		this.offerNum=offerNum;
-		this.demandNum=demandNum;
+		this.peopleOffer=peopleOffer;
+		this.peopleDemand=peopleDemand;
 
 	}
 	public void setTitle(String title){
@@ -40,22 +40,17 @@ public class Book{
 	public String getIsbn(){
 		return this.isbn;
 	}
-	public void setOwnersNum(long num){
-		this.offerNum=num;
+
+	public void setPeopleOffer(List<String> peopleOffer){
+		this.peopleOffer=peopleOffer;
 	}
-	public long getOwnersNum(){
-		return this.offerNum;
+	public List<String> getPeopleOffer(){
+		return this.peopleOffer;
 	}
-	public void setDemandNum(long num){
-		this.demandNum=num;
+	public void setPeopleDemand(List<String> peopleOffer){
+		this.peopleDemand=peopleOffer;
 	}
-	public long getDemandNum(){
-		return this.demandNum;
+	public List<String> getPeopleDemand(){
+		return this.peopleDemand;
 	}
-	// public void addOneRecord(){
-	// 	this.offerNum++;
-	// }
-	// public void deleteOneRecord(){
-	// 	this.offerNum--;
-	// }
 }
