@@ -30,6 +30,15 @@ public class MessageResource{
 		@FormParam("title") String title,
 		@FormParam("body") String body,
 		@Context HttpServletResponse servletResponse)throws IOException{
-			
+    	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    	Entity message = new Entity("Message");
+    	message.setProperty("title", title);
+      message.setProperty("receiver", receiver);
+      message.setProperty("body", body);
+      message.setProperty("sender", sender);
+      Date date = new Date();
+      message.setProperty("date", date);
+    	datastore.put(message);
 		}
+    
 }
