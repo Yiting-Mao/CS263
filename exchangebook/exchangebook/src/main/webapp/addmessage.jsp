@@ -11,9 +11,11 @@
 <!DOCTYPE html>
 <html>
 <head> 
+  <link type="text/css" rel="stylesheet" href="/stylesheets/index.css"/>
  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 </head>
 <body>
+  <div id = "container">
 	<%
 	    UserService userService = UserServiceFactory.getUserService();
 	    User user = userService.getCurrentUser();
@@ -51,11 +53,12 @@
 
 	</script>
   <input type="hidden" id="receiver" value="${fn:escapeXml(receiver)}">
-	Title: <input type="text" id="title" size="100"></br>
-  Body: </br>
-  <textarea id="body" rows="30" cols="100"></textarea></br>
+	Title: <input type="text" id="title" size="100"><br/>
+  Body: <br/>
+  <textarea id="body" rows="30" cols="100"></textarea><br/>
 	<input type="hidden" id="sender" value="${fn:escapeXml(sender)}">
 	<input type="hidden" id="reqURI" value="${fn:escapeXml(reqURI)}">
 	<button>Send</button>
+</div>
 </body>
 </html>

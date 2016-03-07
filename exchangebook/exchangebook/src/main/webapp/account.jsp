@@ -35,6 +35,7 @@
 	 </script>
 </head>
 <body>
+    <div id = "container">
 	 <%
 	     UserService userService = UserServiceFactory.getUserService();
 	     User user = userService.getCurrentUser();
@@ -53,11 +54,11 @@
 	 %>
 
 
-	 <ul>
+	 <ul class="navi">
 	 <li><a href="/index.jsp">Home</a></li>
-	 <li><a href="/account.jsp">My Account</a></li>
+	 <li><a href="/account.jsp">Account</a></li>
 	 <li><a href="/message.jsp">Messeging</a></li>
-	 </ul>
+	 </ul><br/>
 	 <% DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 	    MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
 		Key ownerKey=KeyFactory.createKey("Owner",targetID);
@@ -132,6 +133,7 @@
              }
          
              %>
+</div>
 </body>
 
 </html>

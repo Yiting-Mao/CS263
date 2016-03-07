@@ -1,4 +1,51 @@
 body {
     font-family: Verdana, Helvetica, sans-serif;
-    background-color: #FFFFCC;
+    background-image:url('/images/background.jpg');
+      background-attachment:fixed;
+      background-size:100%;
+    /*background-color: #F0F8FF;*/
+    text-align: center;
+}
+.navi{
+list-style-type:none;
+margin:0;
+padding:0;
+}
+
+.navi li{
+float: left;
+}
+
+.navi a{
+  display:block;
+  width:200px;
+  font-weight:bold;
+  color:#FFFFFF;
+  background-color:#bebebe;
+  text-align:center;
+  padding:5px;
+  text-decoration:none;
+  text-transform:uppercase
+}
+
+div#container{
+  margin-left:auto;
+  margin-right:auto;
+  padding: 3%;
+  width: 80%;
+  background-color:#FFFFFF;
+  text-align: left;
+}
+
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0;
+} 
+
+input[type="submit"]
+{
+  width:120px;
+
 }

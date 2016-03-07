@@ -16,7 +16,7 @@
 </head>
 
 <body>
-
+<div id = "container">
 <%
 	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
@@ -107,30 +107,31 @@ function validate_form_add(thisform)
 
 </script>
 
-<ul>
+<ul class="navi">
 <li><a href="/index.jsp">Home</a></li>
-<li><a href="/account.jsp">My Account</a></li>
+<li><a href="/account.jsp">Account</a></li>
 <li><a href="/message.jsp">Messeging</a></li>
-</ul>
+</ul><br/>
 	
 <p>Search a Book</p>
 <form action="/search" onsubmit="return validate_form_search(this)" method="get">
-	title<input type="text" name="title"></br>
-	author<input type="text" name="author"></br>
-	isbn<input type="text" name="isbn"></br>
+	title<input type="text" name="title"><br/>
+	author<input type="text" name="author"><br/>
+	isbn<input type="text" name="isbn"><br/>
 	<input type="submit" value="begin search">
 </form>
 
 <p>Add a Book</p>
 <form action="/ds" onsubmit="return validate_form_add(this)" method="post">
-	title<input type="text" name="title"></br>
-	author<input type="text" name="author"></br>
-	isbn<input type="text" name="isbn"></br>
-	<input type="radio" name="option" value="offer">offer</br>
-	<input type="radio" name="option" value="demand">demand</br>
-	quantity<input type="number" name="quantity" min="1" max="10"></br>
+	title<input type="text" name="title"><br/>
+	author<input type="text" name="author"><br/>
+	isbn<input type="text" name="isbn"><br/>
+	<input type="radio" name="option" value="offer">offer<br/>
+	<input type="radio" name="option" value="demand">demand<br/>
+	quantity<input type="number" name="quantity" min="1" max="10"><br/>
 	<input type="hidden" name="user" value="<%=userID%>">
 	<input type="submit" value="Add">
 </form>
+</div>
 </body>
 </html>

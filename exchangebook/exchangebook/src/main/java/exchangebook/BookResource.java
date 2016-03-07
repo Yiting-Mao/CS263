@@ -84,7 +84,7 @@ public class BookResource{
 		Book book=getBook();
 		String res="<html><head><link type=\"text/css\" rel=\"stylesheet\" href=\"/stylesheets/index.css\"/></head>";
 		res+="<body>";
-		res+="<ul><li><a href=\"/index.jsp\">Home</a></li><li><a href=\"/account.jsp\">My Account</a></li><li><a href=\"/message.jsp\">Messeging</a></li></ul>";
+		res+="<ul><li><a href=\"/index.jsp\">Home</a></li><li><a href=\"/account.jsp\">Account</a></li><li><a href=\"/message.jsp\">Messeging</a></li></ul>";
 		res+="<p>Book Info<p>";
 		res=res+"<p>Title:"+book.getTitle()+"&nbspAuthor:"+book.getAuthor()+"&nbspISBN:"+book.getIsbn()+"</p>";
 		res=res+"<p>People Offer</p>";

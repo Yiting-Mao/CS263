@@ -77,7 +77,7 @@ public class OwnerResource{
 		// Owner owner=getOwner();
 	// 	String res="<html><head><link type=\"text/css\" rel=\"stylesheet\" href=\"/stylesheets/index.css\"/></head>";
 	// 	res+="<body>";
-	// 	res+="<ul><li><a href=\"/index.jsp\">Home</a></li><li><a href=\"/account.jsp\">My Account</a></li><li><a href=\"/message.jsp\">Messeging</a></li></ul>";
+	// 	res+="<ul><li><a href=\"/index.jsp\">Home</a></li><li><a href=\"/account.jsp\">Account</a></li><li><a href=\"/message.jsp\">Messeging</a></li></ul>";
 	// 	res+="<p>Personal Info<p>";
 	// 	res=res+"<p>Name:"+owner.getName()+"<br/>Location:"+owner.getLocation()+"</p>";
 	// 	res=res+"<p>Books Offer<p>";

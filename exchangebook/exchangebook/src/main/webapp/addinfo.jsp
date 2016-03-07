@@ -11,9 +11,11 @@
 <!DOCTYPE html>
 <html>
 <head> 
+ <link type="text/css" rel="stylesheet" href="/stylesheets/index.css"/>
  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 </head>
 <body>
+    <div id = "container">
 	<%
 	    UserService userService = UserServiceFactory.getUserService();
 	    User user = userService.getCurrentUser();
@@ -53,8 +55,8 @@
 
 	</script>
 
-	Your name: <input type="text" id="name"></br>
-	Your location: <input type="text" id="location"></br>
+	Your name: <input type="text" id="name"><br/>
+	Your location: <input type="text" id="location"><br/>
 	<input type="hidden" id="userID" value="${fn:escapeXml(userID)}">
 	<input type="hidden" id="reqURI" value="${fn:escapeXml(reqURI)}">
 	<button>Submit</button>

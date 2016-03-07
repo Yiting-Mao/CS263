@@ -19,11 +19,12 @@
 	</script>
 </head>
 <body>
- <ul>
+ <div id = "container">
+ <ul class="navi">
  <li><a href="/index.jsp">Home</a></li>
- <li><a href="/account.jsp">My Account</a></li>
+ <li><a href="/account.jsp">Account</a></li>
  <li><a href="/message.jsp">Messeging</a></li>
- </ul>
+ </ul><br/>
 <%
     UserService userService = UserServiceFactory.getUserService();
     User user = userService.getCurrentUser();
@@ -55,9 +56,11 @@
       %>
         <div>
             <p> 
-              Title: ${fn:escapeXml(title)} &nbsp Time:${fn:escapeXml(date)}
-              <a href = "/ds/owner/${fn:escapeXml(sender)}">From:${fn:escapeXml(sender)}</a> </br>
-              Body: ${fn:escapeXml(body)}
+              Title: ${fn:escapeXml(title)} <br/>
+              From: <a href = "/ds/owner/${fn:escapeXml(sender)}">${fn:escapeXml(sender)}</a> &nbsp
+              Time:${fn:escapeXml(date)} <br/>
+              Body:<br/><pre>${body}</pre> 
+              <hr />
             </p>
         </div>
       <%
@@ -75,7 +78,6 @@
 		String receiver = (String)result.getProperty("receiver");
      String title = (String)result.getProperty("title");
      String body = (String)result.getProperty("body");
-     System.out.println(body);
      Date date = (Date) result.getProperty("date");
      DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
      String dateString = dateFormat.format(date);
@@ -86,16 +88,16 @@
      %>
        <div>
            <p> 
-             Title: ${fn:escapeXml(title)} &nbsp Time:${fn:escapeXml(date)}
-             <a href = "/ds/owner/${fn:escapeXml(receiver)}">From:${fn:escapeXml(sender)}</a> </br>
-             Body: ${fn:escapeXml(body)}
+             Title: ${fn:escapeXml(title)} <br/> 
+             To: <a href = "/ds/owner/${fn:escapeXml(receiver)}">${fn:escapeXml(sender)}</a> 
+             &nbsp Time:${date} <br/>
+             Body:<br/><pre>${body}</pre> 
+             <hr />
            </p>
        </div>
      <%
 	}    
    %>
-<script>
-	
-</script>
+</div>
 </body>
 </html>
