@@ -1,0 +1,29 @@
+#add user info, here 123 is userID
+curl -X POST --data "name=rachel&location=ucsb" http://localhost:8080/ds/owner/123/addinfo
+
+#add new book
+curl -X POST --data "author=Rowling&isbn=1338099132&title=harry&option=offer&quantity=2&user=123" http://localhost:8080/ds
+
+#get book info (individual)
+curl -H "Accept: application/json" -X GET http://localhost:8080/ds/book/1338099132
+
+#get owner info (individual)
+curl -H "Accept: application/json" -X GET http://localhost:8080/ds/owner/123
+
+#delete one book of a specific user, num is the quantity of books being deleted
+curl -X DELETE --data "option=offer&num=1" http://localhost:8080/ds/owner/123/1338099132
+
+#delete owner info together with his offer/demand
+curl -X DELETE http://localhost:8080/ds/owner/123
+
+#send a message
+curl -X POST --data "title=hello&receiver=123&body=nice to meet you&delete=false" http://localhost:8080/ds/message/1338099132
+
+#get all messages sent without being deleted
+curl -H "Accept: application/json" -X GET http://localhost:8080/ds/message/1338099132/sent
+
+#get xml
+curl -X GET http://localhost:8080/ds/message/1338099132/sent
+
+#set a received message to read/unread, you need to get the messageID from GET request first
+curl -H "Content-Type: application/json" -X PUT --data "messageID=4644337115725824" http://localhost:8080/ds/message/1338099132

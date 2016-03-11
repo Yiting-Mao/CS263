@@ -1,14 +1,15 @@
 package exchangebook;
 import exchangebook.Book;
-import exchangebook.Owner;
-import exchangebook.OwnerResource;
+import exchangebook.OwnerInfoForBook;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.util.*;
 import java.util.logging.*;
 import com.google.appengine.api.datastore.*;
 import com.google.appengine.api.memcache.*;
-
+// import com.google.appengine.api.users.User;
+// import com.google.appengine.api.users.UserService;
+// import com.google.appengine.api.users.UserServiceFactory;
 import javax.xml.bind.JAXBElement;
 
 public class BookResource{
@@ -24,119 +25,131 @@ public class BookResource{
 		this.isbn=isbn;
 	}
 	
-	private Book getBook(){
-		
-		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-	    MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-	    syncCache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.INFO));
-		Key bookKey=KeyFactory.createKey("Book",this.isbn);
-		Entity result;
-		
-		try{
-			result=datastore.get(bookKey);
-			return new Book((String)result.getProperty("title"),(String)result.getProperty("author"),
-				this.isbn,(List<String>)result.getProperty("peopleOffer"),
-					(List<String>)result.getProperty("peopleDemand"));
-		}
-		catch(EntityNotFoundException e){
-			throw new RuntimeException("Get: Book with isbn" + this.isbn+" not found");
-		}
-		
-		// if(syncCache.contains(this.isbn)){
-	// 		result=(Entity)syncCache.get(this.isbn);
-	// 		return new Book((String)result.getProperty("title"),(String)result.getProperty("author"),
-	// 			this.isbn,(long)result.getProperty("peopleOffer"),
-	// 				(long)result.getProperty("peopleDemand"));
-	// 	}
-	// 	else{
-	// 		try{
-	// 			result=datastore.get(bookKey);
-	// 			return new Book((String)result.getProperty("title"),(String)result.getProperty("author"),
-	// 				this.isbn,(long)result.getProperty("peopleOffer"),
-	// 					(long)result.getProperty("peopleDemand"));
-	// 		}
-	// 		catch(EntityNotFoundException e){
-	// 			throw new RuntimeException("Get: Book with isbn" + this.isbn+" not found");
-	// 		}
-	// 	}
-	}
-	
-	//for the browser
-    @GET
-    @Produces(MediaType.TEXT_XML)
-    public Book getBookHTML() {
-  	  return getBook();
-	
+  private Book getBook(){
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
+    syncCache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.INFO));
+    // UserService userService = UserServiceFactory.getUserService();
+ //    User user = userService.getCurrentUser();
+ //    if (user != null) {
+ //      System.out.println(user.getUserId());
+ //    }
+     //get book info
+    Key bookKey = KeyFactory.createKey("Book", this.isbn);
+    Entity result;
+    if (syncCache.contains(bookKey)) {
+      result = (Entity)syncCache.get(bookKey);
+    } else {
+      try{
+        result = datastore.get(bookKey);
+        syncCache.put(bookKey, result);
+      } catch (EntityNotFoundException e) {
+        throw new RuntimeException("Get: Book with isbn " + this.isbn+" not found");
+      }
     }
+    
+    //Get all owner info with the number of this book they offer
+    List<OwnerInfoForBook> offerList = new ArrayList<OwnerInfoForBook>();
+    Query.Filter f_book = new Query.FilterPredicate("isbn", Query.FilterOperator.EQUAL, isbn);
+    Query q = new Query("Offer").setFilter(f_book);
+    List<Entity> offer = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
+    for(Entity temp : offer) {
+      Key ownerKey = KeyFactory.createKey("Owner", (String)temp.getProperty("userID"));
+      
+      //get user's personal info
+      Entity owner;
+      if (syncCache.contains(ownerKey)) {
+        owner = (Entity)syncCache.get(ownerKey);
+      } else {
+        try {
+          owner = datastore.get(ownerKey);
+          syncCache.put(ownerKey, owner);
+        } catch (EntityNotFoundException e) {
+          System.out.println("Can't find info for owner of this book");
+          owner = new Entity ("Owner");
+          owner.setProperty("name", "");
+          owner.setProperty("location", "");
+        }
+      }
+      offerList.add(new OwnerInfoForBook((String)temp.getProperty("userID"), (String)owner.getProperty("name"),
+         (String)owner.getProperty("location"), (long)temp.getProperty("num")));
+    }
+    
+    //do the same with demand
+    List<OwnerInfoForBook> demandList = new ArrayList<OwnerInfoForBook>();
+    f_book = new Query.FilterPredicate("isbn", Query.FilterOperator.EQUAL, isbn);
+    q = new Query("Demand").setFilter(f_book);
+    List<Entity> demand = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
+    for(Entity temp : demand) {
+      Key ownerKey = KeyFactory.createKey("Owner", (String)temp.getProperty("userID"));
+      
+      //get user's personal info
+      Entity owner;
+      if (syncCache.contains(ownerKey)) {
+        owner = (Entity)syncCache.get(ownerKey);
+      } else {
+        try {
+          owner = datastore.get(ownerKey);
+          syncCache.put(ownerKey, owner);
+        } catch (EntityNotFoundException e) {
+          System.out.println("Can't find info for owner of this book");
+          owner = new Entity ("Owner");
+          owner.setProperty("name", "");
+          owner.setProperty("location", "");
+        }
+      }
+      offerList.add(new OwnerInfoForBook((String)temp.getProperty("userID"), (String)owner.getProperty("name"),
+         (String)owner.getProperty("location"), (long)temp.getProperty("num")));
+    }
+    
+    return new Book((String)result.getProperty("title"), (String)result.getProperty("author"), 
+      isbn, offerList, demandList);
+  }
 	
+    //for the browser
+  @GET
+  @Produces(MediaType.TEXT_XML)
+  public Book getBookHTML() {
+    return getBook();
 
-//for the application
-    @GET
-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    public Book getBookData() {
-      //same code as above method
-  	return getBook();
-    }
+  }
 
-	@GET
-	@Produces("text/html")
-	public String getBookBrowser(){
-		Book book=getBook();
-		String res="<html><head><link type=\"text/css\" rel=\"stylesheet\" href=\"/stylesheets/index.css\"/></head>";
-		res+="<body>";
-		res+="<ul><li><a href=\"/index.jsp\">Home</a></li><li><a href=\"/account.jsp\">Account</a></li><li><a href=\"/message.jsp\">Messeging</a></li></ul>";
-		res+="<p>Book Info<p>";
-		res=res+"<p>Title:"+book.getTitle()+"&nbspAuthor:"+book.getAuthor()+"&nbspISBN:"+book.getIsbn()+"</p>";
-		res=res+"<p>People Offer</p>";
-		List<String> peopleOffer=book.getPeopleOffer();
-		List<String> peopleDemand=book.getPeopleDemand();
-		for(int i=0;i<peopleOffer.size();i++){
-			OwnerResource ownerResource=new OwnerResource(uriInfo, request,peopleOffer.get(i));
-			Owner owner=ownerResource.getOwnerData();
-			res=res+"<a href=\"/ds/owner/"+peopleOffer.get(i)+"\">Name:"+owner.getName()+"</a>";
-			res=res+"&nbspLocation:"+owner.getLocation()+"<br/>";
-			i++;
-		}
-		res=res+"<p>Books Demand</p>";
-		for(int i=0;i<peopleDemand.size();i++){
-			OwnerResource ownerResource=new OwnerResource(uriInfo, request,peopleDemand.get(i));
-			Owner owner=ownerResource.getOwnerData();
-			res=res+"<a href=\"/ds/owner/"+peopleDemand.get(i)+"\">Name:"+owner.getName()+"</a>";
-			res=res+"&nbspLocation:"+owner.getLocation()+"<br/>";
-			i++;
 
-		}
-		res+="</body>";
-		res+="</html";
+    //for the application
+  @GET
+  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+  public Book getBookData() {
+    //same code as above method
+  return getBook();
+  }
 
-		return res;
-	}
-    @PUT
-    @Consumes(MediaType.APPLICATION_XML)
-    public Response putTaskData(String title) {
-      Response res = null;
-  	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-      MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-      syncCache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.INFO));
-  	Key bookKey=KeyFactory.createKey("Book",this.isbn);
-  	Entity inputData;
-  	try{
-  		inputData=datastore.get(bookKey);
-  		inputData.setProperty("title",title);
-  		//res.getWriter().println("Entity Updated");
-  		res = Response.noContent().build();
-		
-  	}catch(EntityNotFoundException e){ 
-  		inputData=new Entity("Book",this.isbn);
-  		inputData.setProperty("title",title);
-  		//res.getWriter().println("Entity Created");
-  		res = Response.created(uriInfo.getAbsolutePath()).build();	
-  	}
-  	datastore.put(inputData);
-  	syncCache.put(this.isbn, inputData);
 
-      return res;
-    }
+    //     @PUT
+    //     @Consumes(MediaType.APPLICATION_XML)
+    //     public Response putTaskData(String title) {
+    //       Response res = null;
+    // DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    //       MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
+    //       syncCache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.INFO));
+    // Key bookKey=KeyFactory.createKey("Book",this.isbn);
+    // Entity inputData;
+    // try{
+    //   inputData=datastore.get(bookKey);
+    //   inputData.setProperty("title",title);
+    //   //res.getWriter().println("Entity Updated");
+    //   res = Response.noContent().build();
+    //
+    // }catch(EntityNotFoundException e){
+    //   inputData=new Entity("Book",this.isbn);
+    //   inputData.setProperty("title",title);
+    //   //res.getWriter().println("Entity Created");
+    //   res = Response.created(uriInfo.getAbsolutePath()).build();
+    // }
+    // datastore.put(inputData);
+    // syncCache.put(this.isbn, inputData);
+    //
+    //       return res;
+    //     }
 	
 	//     @PUT
 	//     @Consumes(MediaType.APPLICATION_XML)

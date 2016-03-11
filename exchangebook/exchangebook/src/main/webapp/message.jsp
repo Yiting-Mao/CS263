@@ -20,11 +20,7 @@
 </head>
 <body>
  <div id = "container">
- <ul class="navi">
- <li><a href="/index.jsp">Home</a></li>
- <li><a href="/account.jsp">Account</a></li>
- <li><a href="/message.jsp">Messeging</a></li>
- </ul><br/>
+
 <%
     UserService userService = UserServiceFactory.getUserService();
     User user = userService.getCurrentUser();
@@ -32,10 +28,21 @@
     pageContext.setAttribute("user", user);
 	  userID=user.getUserId();
 	  System.out.println(userID);
-    
+    if (user != null){
+      %>
+          <p>Hello, ${fn:escapeXml(user.nickname)}! (
+              <a href="<%= userService.createLogoutURL("/index.jsp") %>">sign out</a>.)</p>
+      <%
+    }
+  
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     %>
-       <h2> Message Received: </h2>
+    <ul class="navi">
+    <li><a class="navi" href="/index.jsp">Home</a></li>
+    <li><a class="navi" href="/account.jsp">Account</a></li>
+    <li><a class="navi" href="/message.jsp" style="background-color: #DEB887">Messeging</a></li>
+    </ul><br/>
+    <h2> Message Received: </h2>
     <%
     
     Query.Filter f =new Query.FilterPredicate("receiver",Query.FilterOperator.EQUAL,userID);

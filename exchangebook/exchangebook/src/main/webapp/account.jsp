@@ -48,6 +48,10 @@
 			 userID=user.getUserId();
 			 // handle request from addinfo.jsp
 			 if(targetID==null)targetID=userID;
+             %>
+                 <p>Hello, ${fn:escapeXml(user.nickname)}! (
+                     <a href="<%= userService.createLogoutURL("/index.jsp") %>">sign out</a>.)</p>
+                 <%
 		 }
 		 pageContext.setAttribute("targetID",targetID);
  	// servletResponse.sendRedirect(redirectURL);
@@ -55,9 +59,9 @@
 
 
 	 <ul class="navi">
-	 <li><a href="/index.jsp">Home</a></li>
-	 <li><a href="/account.jsp">Account</a></li>
-	 <li><a href="/message.jsp">Messeging</a></li>
+	 <li><a class="navi" href="/index.jsp">Home</a></li>
+	 <li><a class="navi" href="/account.jsp" style="background-color: #DEB887">Account</a></li>
+	 <li><a class="navi" href="/message.jsp">Messeging</a></li>
 	 </ul><br/>
 	 <% DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 	    MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();

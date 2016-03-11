@@ -39,11 +39,10 @@
 				var location=$('#location').val();
 				var userID=$('#userID').val();
 				var reqURI=$('#reqURI').val();
-		        $.post("/ds/addinfo",
+		        $.post("/ds/owner/"+userID+"/addinfo",
 		        {
 		          name: name,
-		          location: location,
-				  userID: userID
+		          location: location
 		        },
 				function(){
 				     window.location =reqURI ;

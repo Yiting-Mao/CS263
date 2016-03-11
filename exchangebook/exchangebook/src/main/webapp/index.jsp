@@ -37,7 +37,7 @@
 		}
    
 %>
-<p>Hello, ${fn:escapeXml(user.nickname)}! (You can
+<p>Hello, ${fn:escapeXml(user.nickname)}! (
     <a href="<%= userService.createLogoutURL(request.getRequestURI()) %>">sign out</a>.)</p>
 <%
 } else {
@@ -106,13 +106,13 @@ function validate_form_add(thisform)
 }
 
 </script>
-
+<div>
 <ul class="navi">
-<li><a href="/index.jsp">Home</a></li>
-<li><a href="/account.jsp">Account</a></li>
-<li><a href="/message.jsp">Messeging</a></li>
+<li><a class="navi" href="/index.jsp" style="background-color: #DEB887">Home</a></li>
+<li><a class="navi" href="/account.jsp">Account</a></li>
+<li><a class="navi" href="/message.jsp">Messeging</a></li>
 </ul><br/>
-	
+</div>
 <p>Search a Book</p>
 <form action="/search" onsubmit="return validate_form_search(this)" method="get">
 	title<input type="text" name="title"><br/>

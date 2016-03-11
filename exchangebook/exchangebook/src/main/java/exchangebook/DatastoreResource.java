@@ -26,154 +26,97 @@ public class DatastoreResource {
   UriInfo uriInfo;
   @Context
   Request request;
-
-  // Return the list of entities to the user in the browser
-  @GET
-  @Produces(MediaType.TEXT_XML)
-  public List<Book> getEntitiesBrowser() {
-    //datastore dump -- only do this if there are a small # of entities
-    return getBookList();
-  }
   
-  // Return the list of entities to applications 
-  @GET
-  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-  public List<Book> getEntities() {
-    //datastore dump -- only do this if there are a small # of entities
-    //same code as above method
-    return getBookList();
-  }
-  
+  //This if for adding books
   @POST
   @Produces(MediaType.TEXT_HTML)
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   public void newBook(@FormParam("isbn") String isbn,
-	  	@FormParam("author") String author,
-  		@FormParam("title") String title,
+	  @FormParam("author") String author,
+  	@FormParam("title") String title,
 		@FormParam("option") String option,
 		@FormParam("quantity") int quantity, 
 		@FormParam("user") String userID,
-		@Context HttpServletResponse servletResponse)throws IOException{
-	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+		@Context HttpServletResponse servletResponse)throws IOException {
+      
+  	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-	boolean flag=false;
-	List<String> peopleOffer=new ArrayList<String>();
-	List<String> peopleDemand=new ArrayList<String>();
-	Entity bookData;
-	Key bookKey=KeyFactory.createKey("Book",isbn);
-	try{
-		bookData=datastore.get(bookKey);
-		flag=true;
-	}
-	catch(EntityNotFoundException e){
-		bookData=new Entity("Book",isbn);
-		flag=false;
-	}
-	if(option.equals("offer")){
-		if(flag&&bookData.hasProperty("peopleOffer"))peopleOffer=(List<String>)bookData.getProperty("peopleOffer");
-		for(int i=0;i<quantity;i++){
-			peopleOffer.add(userID);
-		}
-		bookData.setProperty("peopleOffer",peopleOffer);
-	}
-	else{
-		if(flag&&bookData.hasProperty("peopleDemand"))peopleDemand=(List<String>)bookData.getProperty("peopleDemand");
-		for(int i=0;i<quantity;i++){
-			peopleDemand.add(userID);
-		}
-		bookData.setProperty("peopleDemand",peopleDemand);
-	}
-	bookData.setProperty("title",title);
-	bookData.setProperty("author",author);
-	datastore.put(bookData);
-	syncCache.put(isbn, bookData);
-	
-	flag=false;
-	List<String> bookOffer=new ArrayList<String>();
-	List<String> bookDemand=new ArrayList<String>();
-	Entity userData;
-	Key userKey=KeyFactory.createKey("Owner",userID);
-	try{
-		userData=datastore.get(userKey);
-		flag=true;
-	}
-	catch(EntityNotFoundException e){
-		userData=new Entity("Owner",userID);
-		flag=false;
-	}
-
-	if(option.equals("offer")){
-		if(flag&&userData.hasProperty("bookOffer"))bookOffer=(List<String>)userData.getProperty("bookOffer");
-		for(int i=0;i<quantity;i++)
-			bookOffer.add(isbn);
-		userData.setProperty("bookOffer",bookOffer);		
-	}
-	else{
-		if(flag&&userData.hasProperty("bookDemand"))bookDemand=(List<String>)userData.getProperty("bookDemand");
-		for(int i=0;i<quantity;i++)
-			bookDemand.add(isbn);
-		userData.setProperty("bookDemand",bookDemand);
-	}
-	datastore.put(userData);
-	syncCache.put(userID, userData);
-  }
-
-  //Possibly error when the post doesn't has parameter userID
-  @Path("addinfo")
-  @POST
-  @Produces(MediaType.TEXT_HTML)
-  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-  public void addOwnerInfo(@FormParam("name") String name,
-	  	@FormParam("location") String location,
-        @FormParam("userID") String userID,
-		@Context HttpServletResponse servletResponse)throws IOException{
-	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-
-	Entity userData;
-	Key userKey=KeyFactory.createKey("Owner",userID);
-	try{
-		userData=datastore.get(userKey);
-	}
-	catch(EntityNotFoundException e){
-		userData=new Entity("Owner",userID);
-	}
-	userData.setProperty("name",name);
-	userData.setProperty("location",location);
-	datastore.put(userData);
-
+    syncCache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.INFO));
+  
+    //Add the book into Book if there's no such book in the datastore before
+  	Entity bookData;
+  	Key bookKey = KeyFactory.createKey("Book",isbn);
+    if (!syncCache.contains(bookKey)) {
+      try {
+        bookData = datastore.get(bookKey);
+      }
+      catch(EntityNotFoundException e){
+        bookData = new Entity("Book", isbn);
+      	bookData.setProperty("title",title);
+      	bookData.setProperty("author",author);
+      	datastore.put(bookData);
+      	syncCache.put(bookKey, bookData);
+      }
+    } 
+  
+  	if(option.equals("offer")) {
+      Query.Filter f_user = new Query.FilterPredicate("userID", Query.FilterOperator.EQUAL, userID);
+      Query.Filter f_book = new Query.FilterPredicate("isbn", Query.FilterOperator.EQUAL, isbn);
+      Query.Filter f_offer = Query.CompositeFilterOperator.and(f_user, f_book);
+      Query q = new Query("Offer").setFilter(f_offer);
+    
+      //Though defined as list, should return no more than one entity
+      List<Entity> offer = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
+    
+      //update quantity if the owner has offered the book before, or add new entity if not
+      if(!offer.isEmpty()) {
+        Entity temp = offer.get(0);
+        temp.setProperty("num", (long)temp.getProperty("num") + quantity);
+      } else {
+        Entity temp = new Entity("Offer");
+        temp.setProperty("userID", userID);
+        temp.setProperty("isbn", isbn);
+        temp.setProperty("num", quantity);
+        datastore.put(temp);
+      }
+  	} else {
+      Query.Filter f_user = new Query.FilterPredicate("userID", Query.FilterOperator.EQUAL, userID);
+      Query.Filter f_book = new Query.FilterPredicate("isbn", Query.FilterOperator.EQUAL, isbn);
+      Query.Filter f_demand = Query.CompositeFilterOperator.and(f_user, f_book);
+      Query q = new Query("Demand").setFilter(f_demand);
+    
+      //Though defined as list, should return no more than one entity
+      List<Entity> demand = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
+    
+      //update quantity if the owner has demanded the book before, or add new entity if not
+      if(!demand.isEmpty()) {
+        Entity temp = demand.get(0);
+        temp.setProperty("num", (long)temp.getProperty("num") + quantity);
+      } else {
+        Entity temp = new Entity("Demand");
+        temp.setProperty("userID", userID);
+        temp.setProperty("isbn", isbn);
+        temp.setProperty("num", quantity);
+        datastore.put(temp);
+      }
+  	}
   }
   
   //The @PathParam annotation says that keyname can be inserted as parameter after this class's route /ds
   @Path("book/{isbn}")
   public BookResource getBookEntity(@PathParam("isbn") String isbn) {
-    System.out.println("GETting Book Info for " +isbn);
     return new BookResource(uriInfo, request, isbn);
   }
   
   @Path("owner/{userID}")
   public OwnerResource getOwnerEntity(@PathParam("userID") String userID){
-	  System.out.println("GETting Owner Info for" + userID);
-	  return new OwnerResource(uriInfo, request,userID);
+	  return new OwnerResource(uriInfo, request, userID);
   }
   
-  
-  private List<Book> getBookList(){
-	  List<Book> list=new ArrayList<Book>();
-	  DatastoreService datastore= DatastoreServiceFactory.getDatastoreService();
-	  Query display_all=new Query("Book");
-	  List<Entity> results=datastore.prepare(display_all).asList(FetchOptions.Builder.withLimit(20));
-	  for(Entity temp:results){
-		  String isbn=temp.getKey().getName();
-		  String author=(String)temp.getProperty("author");
-		  String title=(String)temp.getProperty("title");
-		  List<String> peopleOffer=new ArrayList<String>();
-		  List<String> peopleDemand=new ArrayList<String>();
-		  peopleOffer=(List<String>)temp.getProperty("peopleOffer");
-		  peopleDemand=(List<String>)temp.getProperty("peopleDemand");
-		  Book b=new Book(title,author,isbn,peopleOffer,peopleDemand);
-		  list.add(b);
-	  }
-	  return list;
+  @Path("message/{userID}")
+  public MessageResource getMessage(@PathParam("userID") String userID){
+    return new MessageResource(uriInfo, request, userID);
   }
+  
   
 }

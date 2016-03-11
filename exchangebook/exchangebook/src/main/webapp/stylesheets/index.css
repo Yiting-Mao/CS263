@@ -16,7 +16,7 @@ padding:0;
 float: left;
 }
 
-.navi a{
+a.navi:link, a.navi:visited{
   display:block;
   width:200px;
   font-weight:bold;
@@ -25,9 +25,12 @@ float: left;
   text-align:center;
   padding:5px;
   text-decoration:none;
-  text-transform:uppercase
+  text-transform:uppercase;
 }
 
+a.navi:hover, a.navi:active{
+  background-color:#DEB887;
+}
 div#container{
   margin-left:auto;
   margin-right:auto;
