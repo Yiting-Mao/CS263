@@ -17,8 +17,8 @@
 <body>
   <div id = "container">
 	<%
-	    UserService userService = UserServiceFactory.getUserService();
-	    User user = userService.getCurrentUser();
+    UserService userService = UserServiceFactory.getUserService();
+    User user = userService.getCurrentUser();
 		pageContext.setAttribute("sender",user.getUserId());
 		pageContext.setAttribute("receiver",request.getParameter("receiver"));
     pageContext.setAttribute("reqURI",request.getParameter("reqURI"));

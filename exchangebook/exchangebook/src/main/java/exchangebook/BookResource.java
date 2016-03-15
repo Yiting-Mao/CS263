@@ -7,9 +7,6 @@ import java.util.*;
 import java.util.logging.*;
 import com.google.appengine.api.datastore.*;
 import com.google.appengine.api.memcache.*;
-// import com.google.appengine.api.users.User;
-// import com.google.appengine.api.users.UserService;
-// import com.google.appengine.api.users.UserServiceFactory;
 import javax.xml.bind.JAXBElement;
 
 public class BookResource{
@@ -26,14 +23,12 @@ public class BookResource{
 	}
 	
   private Book getBook(){
+    System.out.println("*******************");
+    System.out.println("Getting Book");
+    System.out.println("*******************");
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
     syncCache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.INFO));
-    // UserService userService = UserServiceFactory.getUserService();
- //    User user = userService.getCurrentUser();
- //    if (user != null) {
- //      System.out.println(user.getUserId());
- //    }
      //get book info
     Key bookKey = KeyFactory.createKey("Book", this.isbn);
     Entity result;
@@ -98,10 +93,9 @@ public class BookResource{
           owner.setProperty("location", "");
         }
       }
-      offerList.add(new OwnerInfoForBook((String)temp.getProperty("userID"), (String)owner.getProperty("name"),
+      demandList.add(new OwnerInfoForBook((String)temp.getProperty("userID"), (String)owner.getProperty("name"),
          (String)owner.getProperty("location"), (long)temp.getProperty("num")));
     }
-    
     return new Book((String)result.getProperty("title"), (String)result.getProperty("author"), 
       isbn, offerList, demandList);
   }
@@ -114,7 +108,6 @@ public class BookResource{
 
   }
 
-
     //for the application
   @GET
   @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
@@ -122,92 +115,6 @@ public class BookResource{
     //same code as above method
   return getBook();
   }
-
-
-    //     @PUT
-    //     @Consumes(MediaType.APPLICATION_XML)
-    //     public Response putTaskData(String title) {
-    //       Response res = null;
-    // DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    //       MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-    //       syncCache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.INFO));
-    // Key bookKey=KeyFactory.createKey("Book",this.isbn);
-    // Entity inputData;
-    // try{
-    //   inputData=datastore.get(bookKey);
-    //   inputData.setProperty("title",title);
-    //   //res.getWriter().println("Entity Updated");
-    //   res = Response.noContent().build();
-    //
-    // }catch(EntityNotFoundException e){
-    //   inputData=new Entity("Book",this.isbn);
-    //   inputData.setProperty("title",title);
-    //   //res.getWriter().println("Entity Created");
-    //   res = Response.created(uriInfo.getAbsolutePath()).build();
-    // }
-    // datastore.put(inputData);
-    // syncCache.put(this.isbn, inputData);
-    //
-    //       return res;
-    //     }
-	
-	//     @PUT
-	//     @Consumes(MediaType.APPLICATION_XML)
-	// public Response putBook(String title, String author, long peopleOffer, long peopleDemand){
-	// 	System.out.println("3 GETting Book Info for " +isbn);
-	// 	Response res=null;
-	// 	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-	//     MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-	// 	syncCache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.INFO));
-	// 	Key bookKey=KeyFactory.createKey("Book",this.isbn);
-	// 	Entity inputData;
-	// 	try{
-	// 		inputData=datastore.get(bookKey);
-	// 		inputData.setProperty("peopleOffer",(long)inputData.getProperty("peopleOffer")+peopleOffer);
-	// 		inputData.setProperty("peopleDemand",(long)inputData.getProperty("peopleDemand")+peopleDemand);
-	// 		res=Response.noContent().build();
-	// 	}
-	// 	catch(EntityNotFoundException e){
-	// 		inputData=new Entity("Book", this.isbn);
-	// 		inputData.setProperty("author",author);
-	// 		inputData.setProperty("title",title);
-	// 		inputData.setProperty("peopleOffer",peopleOffer);
-	// 		inputData.setProperty("peopleDemand",peopleDemand);
-	// 		res = Response.created(uriInfo.getAbsolutePath()).build();
-	// 	}
-	// 	datastore.put(inputData);
-	// 	syncCache.put(this.isbn, inputData);
-	// 	return res;
-	// }
-	
-	// @DELETE
-	// public void deleteBook(long peopleOffer, long peopleDemand){
-	// 	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-	//     MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-	// 	Key bookKey=KeyFactory.createKey("Book",this.isbn);
-	// 	Entity target;
-	// 	try{
-	// 		target=datastore.get(bookKey);
-	// 	}
-	// 	catch(EntityNotFoundException e){
-	// 		throw new RuntimeException("Delete: Book with isbn" + this.isbn+" not found");
-	// 	}
-	// 	long offer=(long)target.getProperty("peopleOffer")-peopleOffer;
-	// 	long demand=(long)target.getProperty("peopleDemand")-peopleDemand;
-	// 	if(offer<=0&&demand<=0){
-	// 		datastore.delete(bookKey);
-	// 		if(syncCache.contains(bookKey)){
-	// 			syncCache.delete(bookKey);
-	// 		}
-	// 	}
-	// 	else{
-	// 		target.setProperty("peopleOffer",offer);
-	// 		target.setProperty("peopleDemand",demand);
-	// 		datastore.put(target);
-	// 		syncCache.put(this.isbn, target);
-	// 	}
-	//
-	// }
 }
 
 

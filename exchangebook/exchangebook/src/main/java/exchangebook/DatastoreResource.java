@@ -29,6 +29,7 @@ public class DatastoreResource {
   
   //This if for adding books
   @POST
+ // @Path("addbook")
   @Produces(MediaType.TEXT_HTML)
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   public void newBook(@FormParam("isbn") String isbn,
@@ -42,7 +43,9 @@ public class DatastoreResource {
   	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
     syncCache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.INFO));
-  
+    System.out.println("*******************");
+    System.out.println("Adding Book");
+    System.out.println("*******************");
     //Add the book into Book if there's no such book in the datastore before
   	Entity bookData;
   	Key bookKey = KeyFactory.createKey("Book",isbn);
@@ -72,11 +75,12 @@ public class DatastoreResource {
       if(!offer.isEmpty()) {
         Entity temp = offer.get(0);
         temp.setProperty("num", (long)temp.getProperty("num") + quantity);
+        datastore.put(temp);
       } else {
         Entity temp = new Entity("Offer");
         temp.setProperty("userID", userID);
         temp.setProperty("isbn", isbn);
-        temp.setProperty("num", quantity);
+        temp.setProperty("num", quantity);       
         datastore.put(temp);
       }
   	} else {
@@ -92,13 +96,14 @@ public class DatastoreResource {
       if(!demand.isEmpty()) {
         Entity temp = demand.get(0);
         temp.setProperty("num", (long)temp.getProperty("num") + quantity);
+        datastore.put(temp);
       } else {
         Entity temp = new Entity("Demand");
         temp.setProperty("userID", userID);
         temp.setProperty("isbn", isbn);
         temp.setProperty("num", quantity);
         datastore.put(temp);
-      }
+      }       
   	}
   }
   

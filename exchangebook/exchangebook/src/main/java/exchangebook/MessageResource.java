@@ -33,6 +33,9 @@ public class MessageResource{
 	@FormParam("body") String body,
   @FormParam("delete") boolean delete,
 	@Context HttpServletResponse servletResponse)throws IOException{
+    System.out.println("*******************");
+    System.out.println("Adding Message");
+    System.out.println("*******************");
   	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
   	Entity message = new Entity("Message");
   	message.setProperty("title", title);
@@ -48,6 +51,9 @@ public class MessageResource{
 	}
   
   private List<MessageSent> getMessageSent() {
+    System.out.println("*******************");
+    System.out.println("Getting Message Sent");
+    System.out.println("*******************");
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     List<MessageSent> list = new ArrayList<>();
     Query.Filter f_sender = new Query.FilterPredicate("sender", Query.FilterOperator.EQUAL, this.userID);
@@ -68,6 +74,9 @@ public class MessageResource{
   }
   
   private List<MessageReceived> getMessageReceived() {
+    System.out.println("*******************");
+    System.out.println("Getting Message Received");
+    System.out.println("*******************");
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     List<MessageReceived> list = new ArrayList<>();
     Query.Filter f_receiver = new Query.FilterPredicate("receiver", Query.FilterOperator.EQUAL, this.userID);
@@ -76,15 +85,13 @@ public class MessageResource{
     Query q = new Query("Message").setFilter(f_received)
                                   .addSort("date", Query.SortDirection.DESCENDING);
     List<Entity> receive_list = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
-    System.out.print(receive_list);
-    if (receive_list != null) {
-      System.out.println(" not empty");
-      for(Entity temp : receive_list) {
-        list.add(new MessageReceived((String)temp.getProperty("sender"), (String)temp.getProperty("title"), 
-                                (String)temp.getProperty("body"), (Date)temp.getProperty("date"),
-                                temp.getKey().getId(), (boolean)temp.getProperty("receiveRead")));
-      }
-    }  
+
+    for(Entity temp : receive_list) {
+      System.out.print(temp);
+      list.add(new MessageReceived((String)temp.getProperty("sender"), (String)temp.getProperty("title"),
+                                  (String)temp.getProperty("body"), (Date)temp.getProperty("date"),
+                                  temp.getKey().getId(), (boolean)temp.getProperty("receiverRead")));
+    }    
     return list;
   }
   
@@ -125,37 +132,82 @@ public class MessageResource{
     return getMessageReceived();
   }
   
+  
   @PUT
-  @Consumes(MediaType.APPLICATION_JSON)
-  public Response putTaskData(long messageID) {
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response updateReadState(@FormParam("messageID") long messageID,
+                              @FormParam("read") boolean read) {
+    System.out.println("*******************");
+    System.out.println("Updating Message Read/Unread");
+    System.out.println("*******************");
     Response res = null;
-    //add your code here
-    //first check if the Entity exists in the datastore
-    //if it is not, create it and 
-    //signal that we created the entity in the datastore 
-	//else signal that we updated the entity
 	  DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-    syncCache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.INFO));
-	Key entKey=KeyFactory.createKey("TaskData",this.keyname);
-	Entity inputData;
-	try{
-		inputData=datastore.get(entKey);
-		inputData.setProperty("value",val);
-		//res.getWriter().println("Entity Updated");
-		res = Response.noContent().build();
-		
-	}catch(EntityNotFoundException e){ 
-		inputData=new Entity("TaskData",this.keyname);
-		inputData.setProperty("value",val);
-		Date createDate=new Date();
-		inputData.setProperty("date", createDate);
-		//res.getWriter().println("Entity Created");
-		res = Response.created(uriInfo.getAbsolutePath()).build();	
-	}
-	datastore.put(inputData);
-	syncCache.put(this.keyname, inputData);
-
+	  Key messageKey = KeyFactory.createKey("Message", messageID);
+    Entity message;
+    if (syncCache.contains(messageKey)) {
+      message = (Entity)syncCache.get(messageKey);
+    } else {
+      try {
+        message = datastore.get(messageKey);
+      } catch (EntityNotFoundException e) {
+        System.out.println("no such message with this messageID");
+        res = Response.noContent().build();
+        return res;
+      }
+    }
+    //update read/unread if this user is the receiver
+    if (!userID.equals((String)message.getProperty("receiver"))) {
+      System.out.println("Wrong messageID");
+      res = Response.noContent().build();
+    } else {
+      message.setProperty("receiverRead", read);
+      datastore.put(message);
+      syncCache.put(messageKey, message);
+      res = Response.created(uriInfo.getAbsolutePath()).build();	 
+    }
     return res;
+  }
+  
+  @Path("{messageID}")
+  @DELETE
+  public void deleteMessage(@PathParam("messageID") long messageID) {
+    System.out.println("*******************");
+    System.out.println("Deleting Message");
+    System.out.println("*******************");
+	  DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
+	  Key messageKey = KeyFactory.createKey("Message", messageID);
+    System.out.print(messageID);
+    System.out.print(messageKey);
+    Entity message;
+    if (syncCache.contains(messageKey)) {
+      message = (Entity)syncCache.get(messageKey);
+    } else {
+      try {
+        message = datastore.get(messageKey);
+      } catch (EntityNotFoundException e) {
+        throw new RuntimeException("no such message with this messageID");
+      }
+    }
+    //mark as delete
+    if (userID.equals((String)message.getProperty("receiver"))) {
+      message.setProperty("receiverDelete", true);
+    } else if (userID.equals((String)message.getProperty("sender"))) {
+      message.setProperty("senderDelete", true); 
+    } else {
+      throw new RuntimeException("Wrong Path");
+    }
+    
+    //if both sender and receiver have deleted the message, delete message from datastore
+    if ((boolean)message.getProperty("senderDelete") == true && (boolean)message.getProperty("receiverDelete") == true) {
+      datastore.delete(messageKey);
+      if (syncCache.contains(messageKey)) {
+        syncCache.delete(messageKey);
+      }
+    } else {
+      datastore.put(message);
+      syncCache.put(messageKey, message);
+    }
   }
 }

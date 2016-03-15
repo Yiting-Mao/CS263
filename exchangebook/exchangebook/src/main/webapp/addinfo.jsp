@@ -17,8 +17,8 @@
 <body>
     <div id = "container">
 	<%
-	    UserService userService = UserServiceFactory.getUserService();
-	    User user = userService.getCurrentUser();
+    UserService userService = UserServiceFactory.getUserService();
+    User user = userService.getCurrentUser();
 		pageContext.setAttribute("userID",user.getUserId());
 		pageContext.setAttribute("reqURI",request.getParameter("reqURI"));
 	%>
@@ -59,5 +59,6 @@
 	<input type="hidden" id="userID" value="${fn:escapeXml(userID)}">
 	<input type="hidden" id="reqURI" value="${fn:escapeXml(reqURI)}">
 	<button>Submit</button>
+  <div>
 </body>
 </html>

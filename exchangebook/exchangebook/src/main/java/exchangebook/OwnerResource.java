@@ -30,6 +30,9 @@ public class OwnerResource {
 	}
 	
   private Owner getOwner() {
+    System.out.println("*******************");
+    System.out.println("Getting Owner");
+    System.out.println("*******************");
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
     syncCache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.INFO));
@@ -98,7 +101,7 @@ public class OwnerResource {
           book.setProperty("author", "");
         }
       }
-      offerList.add(new BookInfoForOwner((String)book.getProperty("title"), (String)book.getProperty("author"), 
+      demandList.add(new BookInfoForOwner((String)book.getProperty("title"), (String)book.getProperty("author"), 
         (String)temp.getProperty("isbn"), (long)temp.getProperty("num")));
     }
     
@@ -122,14 +125,15 @@ public class OwnerResource {
     return getOwner();
   }
 
+
   //for the browser, it will show the user's personal info and the books he offers and demands
-	@GET
-	@Produces(MediaType.TEXT_HTML)
-	public void getOwnerBrowser( 
-		@Context HttpServletRequest req, @Context HttpServletResponse resp) throws IOException,ServletException{
-    req.setAttribute(this.getClass().getName(), this);
-    req.getRequestDispatcher("/account.jsp?targetID="+userID).forward(req, resp);
-	}   
+  // @GET
+  // @Produces(MediaType.TEXT_HTML)
+  // public void getOwnerBrowser(
+  //   @Context HttpServletRequest req, @Context HttpServletResponse resp) throws IOException,ServletException{
+  //     req.setAttribute(this.getClass().getName(), this);
+  //     req.getRequestDispatcher("/otheraccount.jsp?targetID="+userID).forward(req, resp);
+  // }
 
   //Possibly error when the post doesn't has parameter userID
   @Path("addinfo")
@@ -139,6 +143,9 @@ public class OwnerResource {
   public void addOwnerInfo(@FormParam("name") String name,
   @FormParam("location") String location,
    @Context HttpServletResponse servletResponse)throws IOException {
+     System.out.println("*******************");
+     System.out.println("Updating Owner Info");
+     System.out.println("*******************");
   	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
   	Entity userData;
@@ -186,6 +193,9 @@ public class OwnerResource {
   public void deleteBook(@PathParam("isbn") String isbn,
                          @FormParam("option") String option,
                          @FormParam("num") long num) {
+    System.out.println("*******************");
+    System.out.println("Deleting Book");
+    System.out.println("*******************");
   	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     Query.Filter f_user = new Query.FilterPredicate("userID", Query.FilterOperator.EQUAL, userID);
     Query.Filter f_book = new Query.FilterPredicate("isbn", Query.FilterOperator.EQUAL, isbn);
@@ -211,6 +221,9 @@ public class OwnerResource {
   //delete owner info together with the books he/s offers/demands
   @DELETE
   public void deleteOwner() {
+    System.out.println("*******************");
+    System.out.println("Deleting Owner");
+    System.out.println("*******************");
   	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
     
@@ -230,9 +243,15 @@ public class OwnerResource {
     Query q = new Query(choice).setFilter(f_user);
      //Though defined as list, should return no more than one entity
     List<Entity> list = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
+    for(Entity temp: list) {
+      String isbn = (String)temp.getProperty("isbn");
+      datastore.delete(temp.getKey());
+      checkDeleteBookInfo(isbn);
+    }  
+    
     choice = "Demand";
     q = new Query(choice).setFilter(f_user);
-    //list.addAll(datastore.prepare(q).asList(FetchOptions.Builder.withDefaults()));
+    list = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
     for(Entity temp: list) {
       String isbn = (String)temp.getProperty("isbn");
       datastore.delete(temp.getKey());

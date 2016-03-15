@@ -19,29 +19,32 @@
 <head>
 	 <link type="text/css" rel="stylesheet" href="/stylesheets/index.css"/>
 	 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-	 <script type="text/javascript" src="./js/message.js"> </script>
+	 <script type="text/javascript" src="./js/otheraccount.js"> </script>
 </head>
 <body>
     <div id = "container">
 	 <%
      UserService userService = UserServiceFactory.getUserService();
      User user = userService.getCurrentUser();
+		 String targetID=request.getParameter("targetID");
 	 	 String userID=null;
 		 if(user!=null){
 			 userID=user.getUserId();
        pageContext.setAttribute("userID", userID);
-		 } 
+		 }
+		 pageContext.setAttribute("targetID",targetID);
 	 %>
    <input type="hidden" id="userID" value="${fn:escapeXml(userID)}">
+     <input type="hidden" id="targetID" value="${fn:escapeXml(targetID)}">
 
 	 <ul class="navi">
 	 <li><a class="navi" href="/index.jsp">Home</a></li>
 	 <li><a class="navi" href="/myaccount.jsp">Account</a></li>
-	 <li><a class="navi" href="/message.jsp" style="background-color: #DEB887">Messeging</a></li>
+	 <li><a class="navi" href="/message.jsp">Messeging</a></li>
 	 </ul><br/>
    
-   <div id = "messagereceived"></div>
-   <div id = "messagesent"></div>
+   <div id = "personalinfo"></div>   
+   <div id = "book"></div>
 </div>
 </body>
 

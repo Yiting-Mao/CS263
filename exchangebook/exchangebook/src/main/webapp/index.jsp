@@ -109,7 +109,7 @@ function validate_form_add(thisform)
 <div>
 <ul class="navi">
 <li><a class="navi" href="/index.jsp" style="background-color: #DEB887">Home</a></li>
-<li><a class="navi" href="/account.jsp">Account</a></li>
+<li><a class="navi" href="/myaccount.jsp">Account</a></li>
 <li><a class="navi" href="/message.jsp">Messeging</a></li>
 </ul><br/>
 </div>

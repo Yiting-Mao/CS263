@@ -19,7 +19,7 @@
 <head>
 	 <link type="text/css" rel="stylesheet" href="/stylesheets/index.css"/>
 	 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-	 <script type="text/javascript" src="./js/message.js"> </script>
+	 <script type="text/javascript" src="./js/myaccount.js"></script>
 </head>
 <body>
     <div id = "container">
@@ -28,20 +28,27 @@
      User user = userService.getCurrentUser();
 	 	 String userID=null;
 		 if(user!=null){
+			 pageContext.setAttribute("user", user);
 			 userID=user.getUserId();
        pageContext.setAttribute("userID", userID);
-		 } 
+       %>
+       <p>Hello, ${fn:escapeXml(user.nickname)}! (
+           <a href="<%= userService.createLogoutURL("/index.jsp") %>">sign out</a>.)
+       </p>
+       <%
+		 }
 	 %>
    <input type="hidden" id="userID" value="${fn:escapeXml(userID)}">
 
 	 <ul class="navi">
 	 <li><a class="navi" href="/index.jsp">Home</a></li>
-	 <li><a class="navi" href="/myaccount.jsp">Account</a></li>
-	 <li><a class="navi" href="/message.jsp" style="background-color: #DEB887">Messeging</a></li>
+	 <li><a class="navi" href="/myaccount.jsp" style="background-color: #DEB887">Account</a></li>
+	 <li><a class="navi" href="/message.jsp">Messeging</a></li>
 	 </ul><br/>
    
-   <div id = "messagereceived"></div>
-   <div id = "messagesent"></div>
+   <div id = "personalinfo"></div> 
+     
+   <div id = "book"></div>
 </div>
 </body>
 
