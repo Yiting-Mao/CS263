@@ -1,4 +1,4 @@
-<!-- Used to add account info -->
+<!-- add account info -->
 <!-- Use jquery to post to the rest service, when it's done, redirects to the account/index page -->
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>

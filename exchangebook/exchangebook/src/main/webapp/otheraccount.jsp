@@ -1,18 +1,13 @@
+<!-- This page serves to display other user's home page -->
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.google.appengine.api.users.User" %>
 <%@ page import="com.google.appengine.api.users.UserService" %>
 <%@ page import="com.google.appengine.api.users.UserServiceFactory" %>
-<%@ page import="com.google.appengine.api.taskqueue.Queue"%>
-<%@ page import="com.google.appengine.api.taskqueue.QueueFactory"%>
-<%@ page import="com.google.appengine.api.taskqueue.TaskOptions"%>
-<%@ page import="com.google.appengine.api.datastore.*"%>
-<%@ page import="com.google.appengine.api.memcache.*"%>
 <%@ page import="java.util.List" %>
 <%@ page import="java.io.*"%>
 
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-
-<!-- This page serves to display current user's personal page/ view other user's home page -->
 
 <!DOCTYPE html>
 <html>
@@ -31,6 +26,19 @@
 		 if(user!=null){
 			 userID=user.getUserId();
        pageContext.setAttribute("userID", userID);
+			 pageContext.setAttribute("user", user);
+       %>
+       <p>Hello, ${fn:escapeXml(user.nickname)}! (
+           <a href="<%= userService.createLogoutURL("/otheraccount.jsp?targetID="+targetID+"") %>">sign out</a>.)
+       </p>
+       <%
+		 } else {
+       %>
+       <p>Hello!
+           <a href="<%= userService.createLoginURL("/otheraccount.jsp?targetID="+targetID+"") %>">Sign in</a>
+           to exchange books!
+       </p>
+       <%
 		 }
 		 pageContext.setAttribute("targetID",targetID);
 	 %>

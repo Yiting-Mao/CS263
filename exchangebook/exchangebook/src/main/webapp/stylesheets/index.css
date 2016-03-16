@@ -1,9 +1,6 @@
 body {
     font-family: Verdana, Helvetica, sans-serif;
-    background-image:url('/images/background.jpg');
-      background-attachment:fixed;
-      background-size:100%;
-    /*background-color: #F0F8FF;*/
+    background-color: #F5DEB3;
     text-align: center;
 }
 .navi{
@@ -40,6 +37,27 @@ div#container{
   text-align: left;
 }
 
+table {
+  width: 90%;
+  text-align:left;
+  table-layout:fixed;
+}
+td {
+  width:20%;
+}
+
+button{
+  margin-left:10px;
+  width:80px;
+  height:20px;
+  color:#FFFFFF;
+  background-color:#bebebe;
+  border-style:none;
+}
+button:hover, button:active{
+  background-color: #DEB887;
+  border-style:none;
+}
 pre {
     display: block;
     font-family: monospace;

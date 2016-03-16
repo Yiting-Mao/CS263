@@ -20,8 +20,7 @@ import com.google.gson.Gson;
 //Map this class to /ds route
 @Path("/")
 public class DatastoreResource {
-  // Allows to insert contextual objects into the class,
-  // e.g. ServletContext, Request, Response, UriInfo
+  
   @Context
   UriInfo uriInfo;
   @Context
@@ -106,8 +105,7 @@ public class DatastoreResource {
       }       
   	}
   }
-  
-  //The @PathParam annotation says that keyname can be inserted as parameter after this class's route /ds
+
   @Path("book/{isbn}")
   public BookResource getBookEntity(@PathParam("isbn") String isbn) {
     return new BookResource(uriInfo, request, isbn);

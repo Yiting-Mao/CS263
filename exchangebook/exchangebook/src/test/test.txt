@@ -1,29 +1,76 @@
-#add user info, here 123 is userID
-curl -X POST --data "name=rachel&location=ucsb" http://localhost:8080/ds/owner/123/addinfo
+#add user info, here 112096374153334414109 is userID
+
+curl -X POST --data "name=rachel&location=us" http://localhost:8080/ds/owner/112096374153334414109/addinfo
+curl -X POST --data "name=rachel&location=us" http://exchange-book.appspot.com/ds/owner/112096374153334414109/addinfo
 
 #add new book
-curl -X POST --data "author=Rowling&isbn=1338099132&title=harry&option=offer&quantity=2&user=123" http://localhost:8080/ds
+curl -X POST --data "author=Antoine&isbn=1&title=Little Prince&option=offer&quantity=3&user=112096374153334414109" http://localhost:8080/ds
+curl -X POST --data "author=Antoine&isbn=1&title=Little Prince&option=offer&quantity=3&user=112096374153334414109" http://exchange-book.appspot.com/ds
 
 #get book info (individual)
-curl -H "Accept: application/json" -X GET http://localhost:8080/ds/book/1338099132
+curl -H "Accept: application/json" -X GET http://localhost:8080/ds/book/1
+curl -H "Accept: application/json" -X GET http://exchange-book.appspot.com/ds/book/1
+
+#search a book
+curl -H "Accept: application/json" -X GET http://localhost:8080/ds/search/book?author=Antoine
+curl -H "Accept: application/json" -X GET http://exchange-book.appspot.com/ds/search/book?author=Antoine
 
 #get owner info (individual)
-curl -H "Accept: application/json" -X GET http://localhost:8080/ds/owner/123
+curl -H "Accept: application/json" -X GET http://localhost:8080/ds/owner/112096374153334414109
+curl -H "Accept: application/json" -X GET http://exchange-book.appspot.com/ds/owner/112096374153334414109
 
-#delete one book of a specific user, num is the quantity of books being deleted
-curl -X DELETE --data "option=offer&num=1" http://localhost:8080/ds/owner/123/1338099132
+#change book's quantity 
+curl -X PUT --data "num=1" http://localhost:8080/ds/owner/112096374153334414109/offer/1
+curl -X PUT --data "num=1" http://exchange-book.appspot.com/ds/owner/112096374153334414109/offer/1
+
+#delete one book of a specific user
+curl -X DELETE http://localhost:8080/ds/owner/112096374153334414109/offer/1
+curl -X DELETE http://exchange-book.appspot.com/ds/owner/112096374153334414109/offer/1
 
 #delete owner info together with his offer/demand
-curl -X DELETE http://localhost:8080/ds/owner/123
+curl -X DELETE http://localhost:8080/ds/owner/112096374153334414109
+curl -X DELETE http://exchange-book.appspot.com/ds/owner/112096374153334414109
 
 #send a message
-curl -X POST --data "title=hello&receiver=123&body=nice to meet you&delete=false" http://localhost:8080/ds/message/1338099132
+curl -X POST --data "title=hello&receiver=114977838040263622741&body=nice to meet you&delete=false" http://localhost:8080/ds/message/112096374153334414109
 
-#get all messages sent without being deleted
-curl -H "Accept: application/json" -X GET http://localhost:8080/ds/message/1338099132/sent
+curl -X POST --data "title=hello&receiver=114977838040263622741&body=nice to meet you&delete=false" http://exchange-book.appspot.com/ds/message/112096374153334414109
+
+#get all messages sent (without being deleted)
+curl -H "Accept: application/json" -X GET http://localhost:8080/ds/message/112096374153334414109/sent
+curl -H "Accept: application/json" -X GET http://exchange-book.appspot.com/ds/message/112096374153334414109/sent
 
 #get xml
-curl -X GET http://localhost:8080/ds/message/1338099132/sent
+curl -X GET http://localhost:8080/ds/message/112096374153334414109/sent
+curl -X GET http://exchange-book.appspot.com/ds/message/112096374153334414109/sent
 
 #set a received message to read/unread, you need to get the messageID from GET request first
-curl -H "Content-Type: application/json" -X PUT --data "messageID=4644337115725824" http://localhost:8080/ds/message/1338099132
+curl -X PUT --data "messageID=5066549580791808&read=true" http://localhost:8080/ds/message/114977838040263622741
+
+#pay attention that messageID is different
+curl -X PUT --data "messageID=5634472569470976&read=true" http://exchange-book.appspot.com/ds/message/114977838040263622741
+
+#delete a message
+curl -X DELETE http://localhost:8080/ds/message/112096374153334414109/5066549580791808
+curl -X DELETE http://exchange-book.appspot.com/ds/message/112096374153334414109/5634472569470976
+
+#enqueue a book
+curl -X POST --data "author=Rowling&isbn=2&title=harry potter&option=demand&quantity=2&user=112096374153334414109" http://localhost:8080/ds/enqueue/addbook
+
+curl -X POST --data "author=Rowling&isbn=2&title=harry potter&option=demand&quantity=2&user=112096374153334414109" http://exchange-book.appspot.com/ds/enqueue/addbook
+
+#enqueue owner info
+curl -X POST --data "userID=114977838040263622741&name=Yiting&location=china" http://localhost:8080/ds/enqueue/addownerinfo
+curl -X POST --data "userID=114977838040263622741&name=Yiting&location=china" http://exchange-book.appspot.com/ds/enqueue/addownerinfo
+
+#enqueue message
+curl -X POST --data "userID=114977838040263622741&title=Interested in your book&receiver=112096374153334414109&body= I'm very interested in your book&delete=false" http://localhost:8080/ds/enqueue/addmessage
+
+curl -X POST --data "userID=114977838040263622741&title=Interested in your book&receiver=112096374153334414109&body= I'm very interested in your book&delete=false" http://exchange-book.appspot.com/ds/enqueue/addmessage
+
+# using task queue to delete can't work right now, cause in the resources, delete functions are annotated with @DELETE, while task # queue send POST request
+# #enqueue delete book
+# curl -X DELETE --data "userID=123&isbn=1338099132&option=offer&num=1" http://localhost:8080/ds/enqueue/deletebook
+#
+# #enqueue delete owner
+# curl -X DELETE --data "userID=4" http://localhost:8080/ds/enqueue/deleteowner

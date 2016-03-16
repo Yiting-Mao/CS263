@@ -25,6 +25,7 @@ public class Message {
  public String getBody() {
    return this.body;
  }
+ 
  public Date getDate() {
    return this.date;
  }

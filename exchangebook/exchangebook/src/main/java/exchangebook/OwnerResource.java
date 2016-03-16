@@ -121,21 +121,10 @@ public class OwnerResource {
   @GET
   @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
   public Owner getOwnerData() {
-    //same code as above method
     return getOwner();
   }
 
-
-  //for the browser, it will show the user's personal info and the books he offers and demands
-  // @GET
-  // @Produces(MediaType.TEXT_HTML)
-  // public void getOwnerBrowser(
-  //   @Context HttpServletRequest req, @Context HttpServletResponse resp) throws IOException,ServletException{
-  //     req.setAttribute(this.getClass().getName(), this);
-  //     req.getRequestDispatcher("/otheraccount.jsp?targetID="+userID).forward(req, resp);
-  // }
-
-  //Possibly error when the post doesn't has parameter userID
+  //update or add owner's personal info
   @Path("addinfo")
   @POST
   @Produces(MediaType.TEXT_HTML)
@@ -187,37 +176,131 @@ public class OwnerResource {
     }
   }
   
-  //delete owner's specific book
-  @Path("{isbn}")
-  @DELETE
-  public void deleteBook(@PathParam("isbn") String isbn,
-                         @FormParam("option") String option,
-                         @FormParam("num") long num) {
+  //update book number
+  @Path("offer/{isbn}")
+  @PUT
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response updateOfferBook(@FormParam("num") long num,
+    @PathParam("isbn") String isbn) {
     System.out.println("*******************");
-    System.out.println("Deleting Book");
+    System.out.println("Updating Offer Book");
     System.out.println("*******************");
+    Response res = null;
   	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
     Query.Filter f_user = new Query.FilterPredicate("userID", Query.FilterOperator.EQUAL, userID);
     Query.Filter f_book = new Query.FilterPredicate("isbn", Query.FilterOperator.EQUAL, isbn);
     Query.Filter f = Query.CompositeFilterOperator.and(f_user, f_book);
-    String choice = option.equals("offer") ? "Offer" : "Demand";
-  
+    String choice = "Offer";
+    
     Query q = new Query(choice).setFilter(f);
      //Though defined as list, should return no more than one entity
     List<Entity> list = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
     //Should always not empty
     if(!list.isEmpty()) {
       Entity temp = list.get(0);
-      if((long)temp.getProperty("num") > num) {
-        temp.setProperty("num", (long)temp.getProperty("num") - num);
-        datastore.put(temp);
-      } else {
-        datastore.delete(temp.getKey());
-        checkDeleteBookInfo(isbn);
-      }
-    }  
+      temp.setProperty("num", num);
+      datastore.put(temp);
+      syncCache.put(temp.getKey(),temp);
+      res = Response.created(uriInfo.getAbsolutePath()).build();	 
+    } else {
+      System.out.println("Can't find the book for the user");
+      res = Response.noContent().build();
+    }
+    return res;
   }
   
+  //update book number
+  @Path("demand/{isbn}")
+  @PUT
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response updateDemandBook(@FormParam("num") long num,
+    @PathParam("isbn") String isbn) {
+    System.out.println("*******************");
+    System.out.println("Updating Offer Book");
+    System.out.println("*******************");
+    Response res = null;
+  	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
+    Query.Filter f_user = new Query.FilterPredicate("userID", Query.FilterOperator.EQUAL, userID);
+    Query.Filter f_book = new Query.FilterPredicate("isbn", Query.FilterOperator.EQUAL, isbn);
+    Query.Filter f = Query.CompositeFilterOperator.and(f_user, f_book);
+    String choice = "Demand";
+    
+    Query q = new Query(choice).setFilter(f);
+     //Though defined as list, should return no more than one entity
+    List<Entity> list = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
+    //Should always not empty
+    if(!list.isEmpty()) {
+      Entity temp = list.get(0);
+      temp.setProperty("num", num);
+      datastore.put(temp);
+      syncCache.put(temp.getKey(),temp);
+      res = Response.created(uriInfo.getAbsolutePath()).build();	 
+    } else {
+      System.out.println("Can't find the book for the user");
+      res = Response.noContent().build();
+    }
+    return res;
+  }
+  
+  //delete owner's specific book
+  @Path("offer/{isbn}")
+  @DELETE
+  public void deleteOfferBook(@PathParam("isbn") String isbn) {
+    System.out.println("*******************");
+    System.out.println("Deleting Offer Book");
+    System.out.println("*******************");
+  	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
+    Query.Filter f_user = new Query.FilterPredicate("userID", Query.FilterOperator.EQUAL, userID);
+    Query.Filter f_book = new Query.FilterPredicate("isbn", Query.FilterOperator.EQUAL, isbn);
+    Query.Filter f = Query.CompositeFilterOperator.and(f_user, f_book);
+    String choice = "Offer";
+    
+    Query q = new Query(choice).setFilter(f);
+     //Though defined as list, should return no more than one entity
+    List<Entity> list = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
+    //Should always not empty
+    if(!list.isEmpty()) {
+      Entity temp = list.get(0);
+      datastore.delete(temp.getKey());
+      if(syncCache.contains(temp.getKey())) {
+        syncCache.delete(temp.getKey());
+      }
+      checkDeleteBookInfo(isbn);
+    }
+      
+  }
+  
+  //delete a book 
+  @Path("demand/{isbn}")
+  @DELETE
+  public void deleteDemandBook(@PathParam("isbn") String isbn) {
+    System.out.println("*******************");
+    System.out.println("Deleting Demand Book");
+    System.out.println("*******************");
+  	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
+    Query.Filter f_user = new Query.FilterPredicate("userID", Query.FilterOperator.EQUAL, userID);
+    Query.Filter f_book = new Query.FilterPredicate("isbn", Query.FilterOperator.EQUAL, isbn);
+    Query.Filter f = Query.CompositeFilterOperator.and(f_user, f_book);
+    String choice = "Demand";
+    
+    Query q = new Query(choice).setFilter(f);
+     //Though defined as list, should return no more than one entity
+    List<Entity> list = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
+    //Should always not empty
+    if(!list.isEmpty()) {
+      Entity temp = list.get(0);
+      datastore.delete(temp.getKey());
+      if(syncCache.contains(temp.getKey())) {
+        syncCache.delete(temp.getKey());
+      }
+      checkDeleteBookInfo(isbn);
+    }
+      
+  }
   //delete owner info together with the books he/s offers/demands
   @DELETE
   public void deleteOwner() {

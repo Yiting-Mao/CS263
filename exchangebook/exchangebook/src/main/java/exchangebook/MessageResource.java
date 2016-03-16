@@ -25,6 +25,7 @@ public class MessageResource{
 		this.userID = userID;
 	}
   
+  //add a message
 	@POST
   @Produces(MediaType.TEXT_HTML)
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -63,8 +64,6 @@ public class MessageResource{
     Query q = new Query("Message").setFilter(f_sent)
                                   .addSort("date", Query.SortDirection.DESCENDING);
     List<Entity> sent_list = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
-    System.out.println("sent");
-    System.out.print(sent_list);
     for(Entity temp : sent_list) {
       list.add(new MessageSent((String)temp.getProperty("receiver"), (String)temp.getProperty("title"), 
                               (String)temp.getProperty("body"), (Date)temp.getProperty("date"),
@@ -87,7 +86,9 @@ public class MessageResource{
     List<Entity> receive_list = datastore.prepare(q).asList(FetchOptions.Builder.withDefaults());
 
     for(Entity temp : receive_list) {
-      System.out.print(temp);
+      MessageReceived m=new MessageReceived((String)temp.getProperty("sender"), (String)temp.getProperty("title"),
+                                  (String)temp.getProperty("body"), (Date)temp.getProperty("date"),
+                                  temp.getKey().getId(), (boolean)temp.getProperty("receiverRead"));
       list.add(new MessageReceived((String)temp.getProperty("sender"), (String)temp.getProperty("title"),
                                   (String)temp.getProperty("body"), (Date)temp.getProperty("date"),
                                   temp.getKey().getId(), (boolean)temp.getProperty("receiverRead")));
@@ -110,7 +111,6 @@ public class MessageResource{
   @GET
   @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
   public List<MessageSent> getMessageSentData() {
-    //same code as above method
     return getMessageSent();
   }
  
@@ -128,11 +128,10 @@ public class MessageResource{
   @GET
   @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
   public List<MessageReceived> getMessageReceivedData() {
-    //same code as above method
     return getMessageReceived();
   }
   
-  
+  //mark the message as read or unread
   @PUT
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   public Response updateReadState(@FormParam("messageID") long messageID,
@@ -169,6 +168,7 @@ public class MessageResource{
     return res;
   }
   
+  //delete a message
   @Path("{messageID}")
   @DELETE
   public void deleteMessage(@PathParam("messageID") long messageID) {

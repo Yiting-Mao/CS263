@@ -15,21 +15,11 @@
   <servlet-name>Jersey REST Service</servlet-name>
   <url-pattern>/ds/*</url-pattern>
  </servlet-mapping>
-
- 
- <servlet>
-   <servlet-name>search servlet</servlet-name>
-   <servlet-class>exchangebook.SearchServlet</servlet-class>
- </servlet>
-  <servlet-mapping>
-   <servlet-name>search servlet</servlet-name>
-   <url-pattern>/search</url-pattern>
-  </servlet-mapping>
   
   <security-constraint>
      <web-resource-collection>
          <web-resource-name>my account</web-resource-name>
-         <url-pattern>/account.jsp</url-pattern>
+         <url-pattern>/myaccount.jsp</url-pattern>
      </web-resource-collection>
      <auth-constraint>
          <role-name>*</role-name>

@@ -18,6 +18,8 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 
 @Path("/enqueue")
 public class EnqueueDispatcher {
+  
+  //enqueue to post books
   @Path("addbook")
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -36,7 +38,8 @@ public class EnqueueDispatcher {
                 .param("author", author).param("title", title).param("option", option)
                 .param("quantity", Integer.toString(quantity)).param("user", userID));
   }
-    
+  
+  //enqueue to update ownerinfo 
   @Path("addownerinfo")
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -65,9 +68,9 @@ public class EnqueueDispatcher {
  //    System.out.println("Enqueue: Deleting Book");
  //    System.out.println("*******************");
  //    Queue queue = QueueFactory.getDefaultQueue();
- //    String url = "/ds/owner/" + userID + "/" + isbn;
+ //    String url = "/ds/owner/" + userID + "/" + option+"/"+isbn;
  //    System.out.print(url);
- //    queue.add(TaskOptions.Builder.withUrl(url).param("option", option)
+ //    queue.add(TaskOptions.Builder.withUrl(url)
  //                .param("num", Long.toString(num)));
  //  }
  //
@@ -85,6 +88,7 @@ public class EnqueueDispatcher {
  //    queue.add(TaskOptions.Builder.withUrl(url));
  //  }
  
+ //enqueue to post a message
  @Path("addmessage")
  @POST
  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)

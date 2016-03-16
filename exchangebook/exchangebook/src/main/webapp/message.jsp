@@ -1,18 +1,15 @@
+<!-- This page serves to manage sent/received messages -->
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.google.appengine.api.users.User" %>
 <%@ page import="com.google.appengine.api.users.UserService" %>
 <%@ page import="com.google.appengine.api.users.UserServiceFactory" %>
-<%@ page import="com.google.appengine.api.taskqueue.Queue"%>
-<%@ page import="com.google.appengine.api.taskqueue.QueueFactory"%>
-<%@ page import="com.google.appengine.api.taskqueue.TaskOptions"%>
-<%@ page import="com.google.appengine.api.datastore.*"%>
-<%@ page import="com.google.appengine.api.memcache.*"%>
 <%@ page import="java.util.List" %>
 <%@ page import="java.io.*"%>
 
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
-<!-- This page serves to display current user's personal page/ view other user's home page -->
+
 
 <!DOCTYPE html>
 <html>
@@ -30,6 +27,12 @@
 		 if(user!=null){
 			 userID=user.getUserId();
        pageContext.setAttribute("userID", userID);
+       pageContext.setAttribute("user",user);
+       %>
+       <p>Hello, ${fn:escapeXml(user.nickname)}! (
+           <a href="<%= userService.createLogoutURL("/index.jsp") %>">sign out</a>.)
+       </p>
+       <%
 		 } 
 	 %>
    <input type="hidden" id="userID" value="${fn:escapeXml(userID)}">
@@ -39,6 +42,9 @@
 	 <li><a class="navi" href="/myaccount.jsp">Account</a></li>
 	 <li><a class="navi" href="/message.jsp" style="background-color: #DEB887">Messeging</a></li>
 	 </ul><br/>
+   <br/>
+   <button id="receive" click="true">In Box </button>
+   <button id="sent">Out Box</button>
    
    <div id = "messagereceived"></div>
    <div id = "messagesent"></div>

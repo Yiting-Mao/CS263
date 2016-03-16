@@ -1,5 +1,5 @@
-<!-- Used to add account info -->
-<!-- Use jquery to post to the rest service, when it's done, redirects to the account/index page -->
+<!-- add messages -->
+<!-- Use jquery to post to the rest enqueue dispatcher, when it's done, redirects to the page which accesses this -->
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.google.appengine.api.users.User" %>
@@ -13,6 +13,7 @@
 <head> 
   <link type="text/css" rel="stylesheet" href="/stylesheets/index.css"/>
  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+ <script  type="text/javascript" src="./js/addmessage.js"></script>
 </head>
 <body>
   <div id = "container">
@@ -22,38 +23,12 @@
 		pageContext.setAttribute("sender",user.getUserId());
 		pageContext.setAttribute("receiver",request.getParameter("receiver"));
     pageContext.setAttribute("reqURI",request.getParameter("reqURI"));
+    pageContext.setAttribute("title", request.getParameter("title"));
 	%>
-	<script>
-		$(document).ready(function(){
-		    $("button").click(function(){
-			if($('#title').val()==''){
-				alert("Fill in title");
-				$('#title').focus();
-			}
-			else{
-				var title=$('#title').val();
-				var body=$('#body').val();
-				var sender=$('#sender').val();
-        var receiver = $('#receiver').val();
-				var reqURI=$('#reqURI').val();
-		        $.post("/ds/message",
-		        {
-		          sender: sender,
-		          receiver: receiver,
-				      title: title,
-              body: body
-		        },
-				function(){
-				     window.location =reqURI ;
-				});
-			}
-		
-		    });
-		});
-
-	</script>
+    
+ 
   <input type="hidden" id="receiver" value="${fn:escapeXml(receiver)}">
-	Title: <input type="text" id="title" size="100"><br/>
+	Title: <input type="text" id="title" size="100" value="${fn:escapeXml(title)}"><br/>
   Body: <br/>
   <textarea id="body" rows="30" cols="100"></textarea><br/>
 	<input type="hidden" id="sender" value="${fn:escapeXml(sender)}">

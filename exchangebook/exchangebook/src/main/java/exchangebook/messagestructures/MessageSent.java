@@ -7,19 +7,19 @@ import exchangebook.Message;
 @XmlRootElement
 
 public class MessageSent extends Message{
- private String receiverId;
+ private String receiverID;
  public MessageSent() {
    
  } 
  public MessageSent(String rid, String title, String body, Date date, long messageID) {
    super(title, body, date, messageID);
-   receiverId = rid;
+   receiverID = rid;
  }  
- public String getReceiverId() {
-   return this.receiverId;
+ public String getReceiverID() {
+   return this.receiverID;
  }
 
- public void setReceiverId(String rid) {
-   receiverId = rid;
+ public void setReceiverID(String rid) {
+   receiverID = rid;
  }
 }

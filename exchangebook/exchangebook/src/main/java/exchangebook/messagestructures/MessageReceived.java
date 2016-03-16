@@ -5,27 +5,27 @@ import java.util.*;
 @XmlRootElement
 
 public class MessageReceived extends Message {
-  private String senderId;
+  private String senderID;
   private boolean read;
   public MessageReceived() {
  
   } 
   public MessageReceived(String sid, String title, String body, Date date, long messageID, boolean read) {
     super(title, body, date, messageID);
-    senderId = sid;
+    senderID = sid;
     this.read = read;
   }
  
-  public String getSenderId() {
-    return this.senderId;
+  public String getSenderID() {
+    return this.senderID;
   }
 
   public boolean getRead() {
     return this.read;
   }
 
-  public void setSenderId(String sid) {
-    senderId = sid;
+  public void setSenderID(String sid) {
+    senderID = sid;
   }
 
   public void setRead(boolean read) {
